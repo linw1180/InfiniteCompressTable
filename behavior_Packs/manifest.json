@@ -1,0 +1,41 @@
+{
+  "header": {
+    "uuid": "6ca50171-1f9e-4faa-95aa-9799237b4b08", 
+    "description": "无限压缩台 by黑曜石工作室", 
+    "min_engine_version": [
+      1, 
+      8, 
+      0
+    ], 
+    "name": "InfiniteCompressTable", 
+    "version": [
+      1, 
+      0, 
+      0
+    ]
+  }, 
+  "modules": [
+    {
+      "uuid": "f8c227f0-81d1-49cb-880a-a6287bdbe5c8", 
+      "description": "无限压缩台 by黑曜石工作室", 
+      "type": "data", 
+      "version": [
+        1, 
+        0, 
+        0
+      ]
+    }
+  ], 
+  "format_version": 1, 
+  "dependencies": [
+    {
+      "uuid": "b7e187e1-91b7-4d0c-af7c-ea553465918f", 
+      "description": "无限压缩台 by黑曜石工作室", 
+      "version": [
+        1, 
+        0, 
+        0
+      ]
+    }
+  ]
+}
