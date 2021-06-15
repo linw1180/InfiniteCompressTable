@@ -1,0 +1,746 @@
+# -*- coding: utf-8 -*-
+
+import mod.server.extraServerApi as serverApi
+
+level_id = serverApi.GetLevelId()
+
+
+def get_chest_block_container_size(pos, dimension=0):
+    """
+    获取箱子容量大小
+    
+    1.23 调整 废弃player_id参数
+
+    1.20 调整 新增dimension参数，默认为-1，传入非负值时不依赖player_id，可获取对应维度的常加载区块内箱子容量
+
+    :param pos: tuple(int,int,int) 箱子位置
+    :param dimension: int 箱子所在维度，默认为-1，传入非负值时不依赖player_id，player_id可传入None，可获取对应维度的常加载区块内箱子容量
+    :return: int 箱子大小,错误值-1
+    """
+    chest_block_comp = serverApi.GetEngineCompFactory().CreateChestBlock(level_id)
+    return chest_block_comp.GetChestBoxSize(None, pos, dimension)
+
+
+def set_chest_block_item_num(pos, slot_pos, num, dimension=0):
+    """
+    设置箱子槽位物品数目
+
+    1.23 调整 废弃player_id参数
+
+    1.20 调整 增加参数dimension，默认为-1，传入非负值时不依赖player_id，可在对应维度的常加载区块设置箱子内物品数量
+
+    :param pos: tuple(int,int,int) 箱子位置
+    :param slot_pos: int 箱子槽位
+    :param num: int 物品数目
+    :param dimension: int 方块所在维度，默认值为0，传入非负值时不依赖player_id，player_id可传入None，可在对应维度的常加载区块设置方块
+    :return: bool 设置结果
+    """
+    chest_block_comp = serverApi.GetEngineCompFactory().CreateChestBlock(level_id)
+    return chest_block_comp.SetChestBoxItemNum(None, pos, slot_pos, num, dimension)
+
+
+def exchange_chest_block_item(player_id, pos, slot_pos1, slot_pos2):
+    """
+    交换箱子里物品的槽位
+
+    1.18 新增 新增交换箱子物品接口
+
+    :param player_id: str 玩家id
+    :param pos: tuple(int,int,int) 箱子位置
+    :param slot_pos1: int 箱子槽位1
+    :param slot_pos2: int 箱子槽位2
+    :return: bool 设置成功返回True，失败返回False
+    """
+    chest_block_comp = serverApi.GetEngineCompFactory().CreateChestBlock(player_id)
+    return chest_block_comp.SetChestBoxItemExchange(player_id, pos, slot_pos1, slot_pos2)
+
+
+def add_banned_item(item_info):
+    """
+    增加禁用物品
+
+    也可以通过填写配置文件config/banned_items.json进行启动禁用
+    
+    :param item_info: str 物品标识符，格式[namespace:name:auxvalue]，auxvalue默认为0，auxvalue为*时候匹配任意auxvalue值。例如：minecraft:egg:*
+    :return: bool 是否增加成功
+    """
+    item_banned_comp = serverApi.GetEngineCompFactory().CreateItemBanned(level_id)
+    return item_banned_comp.AddBannedItem(item_info)
+
+
+def get_banned_item_list():
+    """
+    获取禁用物品列表
+
+    :return: list(str)或None 禁用物品列表或者None(异常情况),list元素为物品标识符,格式[namespace:name:auxvalue]，auxvalue默认为0，auxvalue为*时候匹配任意auxvalue值。
+    """
+    item_banned_comp = serverApi.GetEngineCompFactory().CreateItemBanned(level_id)
+    return item_banned_comp.GetBannedItemList()
+
+
+def remove_banned_item(item_info):
+    """
+    移除禁用物品
+    
+    :param item_info: str 物品标识符，格式[namespace:name:auxvalue]，auxvalue默认为0，auxvalue为*时候匹配任意auxvalue值。
+    :return: bool 是否移除成功
+    """
+    item_banned_comp = serverApi.GetEngineCompFactory().CreateItemBanned(level_id)
+    return item_banned_comp.RemoveBannedItem(item_info)
+
+
+def clear_banned_items():
+    """
+    清空禁用物品
+
+    :return: bool 是否清空成功
+    """
+    item_banned_comp = serverApi.GetEngineCompFactory().CreateItemBanned(level_id)
+    return item_banned_comp.ClearBannedItems()
+
+
+def spawn_item_to_level(item_dict, dimension, pos):
+    """
+    生成物品掉落物，如果需要获取物品的entityId，可以调用服务端系统接口CreateEngineItemEntity
+
+    :param item_dict: dict [物品信息字典]
+    :param dimension: int 设置dimension
+    :param pos: tuple(float,float,float) 生成位置
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(level_id)
+    return item_comp.SpawnItemToLevel(item_dict, dimension, pos)
+
+
+def spawn_item_to_player_carried(item_dict, player_id):
+    """
+    生成物品到玩家右手
+    
+    :param item_dict: dict [物品信息字典]
+    :param player_id: str 玩家id
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SpawnItemToPlayerCarried(item_dict, player_id)
+
+
+def clear_player_offhand(player_id):
+    """
+    清除玩家左手物品
+
+    1.19 新增 清除玩家左手物品
+
+    :param player_id: str 玩家id
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.ClearPlayerOffHand(player_id)
+
+
+def spawn_item_to_player_inv(item_dict, player_id, slot_pos=-1):
+    """
+    生成物品到玩家背包
+
+    当slotPos不设置时，当设置的数量超过单个槽位堆叠的上限时，会将多余的物品设置到另外的空闲槽位.如果生成的物品与背包中有的槽位的物品种类一致，该接口也会将物品增加到这些槽位中。
+
+    注意：如果背包中剩余的物品数目和增加的物品数目之和大于64，则会生成物品数目到64，但是接口返回失败。
+
+    :param item_dict: dict [物品信息字典]
+    :param player_id: str 玩家id
+    :param slot_pos: int 背包槽位(可选)
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SpawnItemToPlayerInv(item_dict, player_id, slot_pos)
+
+
+def spawn_item_to_container(item_dict, slot_pos, block_pos, dimension=0):
+    """
+    生成物品到容器
+
+    目前该接口支持的容器类型方块：箱子、潜影盒、漏斗、木桶、投掷器、发射器
+
+    此接口不支持末影箱。对应的末影箱接口请参考 SpawnItemToEnderChest
+
+    下面情况视为清空特定槽位:itemDict为空，为{}, 或itemName为minecraft:air，或者count为0
+
+    :param item_dict: dict [物品信息字典]
+    :param slot_pos: int 箱子槽位
+    :param block_pos: tuple(int,int,int) 箱子位置
+    :param dimension: int 方块所在维度，默认值为0
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(level_id)
+    return item_comp.SpawnItemToContainer(item_dict, slot_pos, block_pos, dimension)
+
+
+def spawn_item_to_ender_chest(player_id, item_dict, slot_pos):
+    """
+    生成物品到末影箱
+
+    下面情况视为清空特定槽位:itemDict为空，为{}, 或itemName为minecraft:air，或者count为0
+
+    :param player_id:
+    :param item_dict: dict [物品信息字典]
+    :param slot_pos: int 箱子槽位
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SpawnItemToEnderChest(item_dict, player_id, slot_pos)
+
+
+def get_player_item(player_id, slot_type, slot_pos=0, get_user_data=False):
+    """
+    获取玩家物品，支持获取背包，盔甲栏，副手以及主手物品
+    
+    :param player_id: str 玩家id
+    :param slot_type: int [ItemPosType]枚举
+    :param slot_pos: int 槽位，获取INVENTORY及ARMOR时需要设置，其他情况写0即可
+    :param get_user_data: bool 是否获取userData，默认为False
+    :return: dict [物品信息字典]，没有物品则返回None
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.GetPlayerItem(slot_type, slot_pos, get_user_data)
+
+
+def change_player_item_tips_and_extra_id(player_id, slot_type, slot_pos=0, custom_tips="", extra_id=""):
+    """
+    修改玩家物品的自定义tips和自定义标识符
+
+    :param player_id: str 玩家id
+    :param slot_type: int [ItemPosType]枚举
+    :param slot_pos: int 箱子槽位
+    :param custom_tips: str 物品的自定义tips
+    :param extra_id: str 物品的自定义标识符
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.ChangePlayerItemTipsAndExtraId(slot_type, slot_pos, custom_tips, extra_id)
+
+
+def add_enchant_to_player_inv_item(player_id, slot_pos, enchant_type, level):
+    """
+    给物品栏的物品添加附魔信息
+    
+    :param player_id: 
+    :param slot_pos: int 物品栏槽位
+    :param enchant_type: int 附魔类型，可以查看枚举值文档
+    :param level: int 附魔等级
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.AddEnchantToInvItem(slot_pos, enchant_type, level)
+
+
+def get_player_inv_item_enchant(player_id, slot_pos):
+    """
+    获取物品栏的物品附魔信息
+
+    :param player_id:
+    :param slot_pos: int 物品栏槽位
+    :return: list(tuple(int,int)) list中每个tuple由附魔类型([EnchantType]枚举)和附魔等级组成。没有附魔则为空list
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.GetInvItemEnchant(slot_pos)
+
+
+def set_player_inv_item_num(player_id, slot_pos, num):
+    """
+    设置玩家背包物品数目
+
+    :param player_id:
+    :param slot_pos: int 物品栏槽位
+    :param num: int 物品数目
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetInvItemNum(slot_pos, num)
+
+
+def exchange_player_inv_item(player_id, pos1, pos2):
+    """
+    交换玩家背包物品
+
+    :param player_id:
+    :param pos1: int 物品位置
+    :param pos2: int 物品位置
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetInvItemExchange(pos1, pos2)
+
+
+def set_player_item_durability(player_id, pos_type, slot_pos, durability):
+    """
+    设置物品的耐久值
+
+    设置的耐久值超过物品的最大耐久值时，使用最大耐久值；最小耐久值为0。
+
+    :param player_id:
+    :param pos_type: int [ItemPosType]枚举
+    :param slot_pos: int 物品槽位 当slot值为-1时，设置左手物品的耐久值
+    :param durability: int 耐久值
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetItemDurability(pos_type, slot_pos, durability)
+
+
+def get_player_item_durability(player_id, pos_type, slot_pos):
+    """
+    获取指定槽位的物品耐久
+
+    :param player_id:
+    :param pos_type: int [ItemPosType]枚举
+    :param slot_pos: int 槽位，为-1时，获取左手物品的耐久值
+    :return: int 物品的耐久值
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.GetItemDurability(pos_type, slot_pos)
+
+
+def set_player_inv_item_durability(player_id, slot_pos, durability):
+    """
+    设置背包物品的耐久值
+
+    设置的耐久值超过物品的最大耐久值时，使用最大耐久值；最小耐久值为0。当slot值为-1时，设置左手物品的耐久值
+
+    :param player_id:
+    :param slot_pos: int 物品槽位
+    :param durability: int 耐久值
+    :return: bool 设置结果
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetInvItemDurability(slot_pos, durability)
+
+
+def get_player_inv_item_durability(player_id, slot_pos):
+    """
+    获取背包物品的耐久值
+
+    如果物品不存在，返回值为None。当slot值为-1时，获取左手物品的耐久值
+
+    :param player_id:
+    :param slot_pos: int 物品槽位
+    :return: int 物品的耐久值
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.GetInvItemDurability(slot_pos)
+
+
+def set_equipment_durability(entity_id, slot_pos, durability):
+    """
+    设置装备槽位中盔甲的耐久值
+
+    设置的耐久值超过物品的最大耐久值时，使用最大耐久值；最小耐久值为0
+
+    1.19 调整 新增支持设置生物装备槽位中盔甲的耐久值
+    :param entity_id:
+    :param slot_pos: int [ArmorSlotType]枚举
+    :param durability: int 耐久值
+    :return:
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(entity_id)
+    return item_comp.SetEquItemDurability(slot_pos, durability)
+
+
+def get_equipment_durability(entity_id, slot_pos):
+    """
+    获取装备槽位中盔甲的耐久值
+
+    :param entity_id:
+    :param slot_pos: int [ArmorSlotType]枚举
+    :return: int 盔甲的耐久值，如果物品不存在，返回值为None
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(entity_id)
+    return item_comp.GetEquItemDurability(slot_pos)
+
+
+def get_item_entity_data(item_entity_id, get_user_data=False):
+    """
+    获取掉落在世界的指定entity_id的物品信息
+    
+    :param item_entity_id: str itemEntity的entityId
+    :param get_user_data: bool 是否获取userData，默认为False
+    :return: dict 物品字典信息，如果物品不存在，返回值为None
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(level_id)
+    return item_comp.GetDroppedItem(item_entity_id, get_user_data)
+
+
+def get_equipment_enchant(entity_id, slot_pos):
+    """
+    获取装备槽位中盔甲的附魔
+
+    1.19 调整 支持获取生物装备槽位中盔甲的附魔
+
+    :param entity_id:
+    :param slot_pos: int [ArmorSlotType]枚举
+    :return: 如果物品不存在，或者没有附魔值，返回None。如果存在返回tuple数组，每个tuple由附魔类型([EnchantType]和附魔等级组成
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(entity_id)
+    return item_comp.GetEquItemEnchant(slot_pos)
+
+
+def get_item_basic_info(item_name, aux_value=0):
+    """
+    获取物品的基础信息
+
+    1.22 调整 新增itemCategory,itemType,itemTierLevel字段
+
+    1.21 调整 新增idAux字段，用于ui物品控件的绑定
+
+    1.20 调整 返回信息新增挖掘相关属性tierDict
+
+    :param item_name: str item的identifier
+    :param aux_value: int 物品的附加值auxValue
+    :return: dict
+        itemName: str 本地化的物品名字
+        maxStackSize: int 物品最大堆叠数目
+        maxDurability: int 物品最大耐久值
+        idAux: int 主要用于客户端的ui绑定，详见客户端接口
+        tierDict: dict 自定义方块定义的挖掘相关的属性 netease:tier,没有设置时返回None
+        itemCategory: str 创造栏分类
+        itemType: str 物品类型
+        itemTierLevel: int 工具等级
+    如果物品不存在，返回值为None
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(level_id)
+    return item_comp.GetItemBasicInfo(item_name, aux_value)
+
+
+def set_item_max_stack_size(player_id, item_dict, max_stack_size):
+    """
+    设置物品的最大堆叠数量（存档）
+
+    :param player_id:
+    :param item_dict: dict [物品信息字典]
+    :param max_stack_size: int 物品最大堆叠数目
+    :return: bool 设置是否成功
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetMaxStackSize(item_dict, max_stack_size)
+
+
+def set_item_attack_damage(player_id, item_dict, damage):
+    """
+    设置物品的攻击伤害值
+
+    :param player_id:
+    :param item_dict: dict [物品信息字典]
+    :param damage: int 攻击伤害值
+    :return: bool 设置是否成功
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetAttackDamage(item_dict, damage)
+
+
+def set_item_tier_level(player_id, item_dict, level):
+    """
+    设置工具类物品的挖掘等级
+        http://mc.163.com/mcstudio/mc-dev/MCDocs/2-ModSDK%E6%A8%A1%E7%BB%84%E5%BC%80%E5%8F%91/02-Python%E8%84%9A%E6%9C%AC%E5%BC%80%E5%8F%91/99-ModAPI/4-%E7%BB%84%E4%BB%B6/2-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%BB%84%E4%BB%B6.html#setitemtierlevel
+
+    :param player_id:
+    :param item_dict: dict [物品信息字典]
+    :param level: int 挖掘等级
+    :return: bool 设置是否成功
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetItemTierLevel(item_dict, level)
+
+
+def set_item_tier_speed(player_id, item_dict, speed):
+    """
+    设置工具类物品的挖掘速度
+
+    :param player_id:
+    :param item_dict: dict [物品信息字典]
+    :param speed: float 挖掘速度
+    :return: bool 设置是否成功
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetItemTierSpeed(item_dict, speed)
+
+
+def set_shears_destroy_block_speed(entity_id, block_name, speed):
+    """
+    设置剪刀对某一方块的破坏速度
+
+    * 设置的速度最终会加上剪刀的附魔：效率计算
+    * 原版剪刀对蜘蛛网的破坏速度为15，羊毛的破坏速度为5，也可以用该接口重写对这两个方块的破坏速度
+    * 设置的速度必须大于1，否则该接口返回False
+
+    :param entity_id:
+    :param block_name: str 方块名称,包含命名空间
+    :param speed: float 破坏速度
+    :return: bool 设置是否成功
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(entity_id)
+    return item_comp.SetShearsDestoryBlockSpeed(block_name, speed)
+
+
+def cancel_shears_destroy_block_speed(entity_id, block_name):
+    """
+    取消剪刀对某一方块的破坏速度设置
+
+    :param entity_id:
+    :param block_name: str 方块名称,包含命名空间
+    :return: bool 设置是否成功
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(entity_id)
+    return item_comp.CancelShearsDestoryBlockSpeed(block_name)
+
+
+def cancel_shears_destroy_block_speed_all(entity_id):
+    """
+    取消剪刀对全部方块的破坏速度设置
+
+    :param entity_id:
+    :return:
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(entity_id)
+    return item_comp.CancelShearsDestoryBlockSpeedAll()
+
+
+def get_player_all_items(player_id, pos_type, get_user_data=False):
+    """
+    获取玩家指定的槽位的批量物品信息
+
+    :param player_id:
+    :param pos_type: int [ItemPosType]枚举
+    :param get_user_data: bool 是否获取userData，默认为False
+    :return: list(dict) [物品信息字典]的数组，没有物品的位置为None
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.GetPlayerAllItems(pos_type, get_user_data)
+
+
+def set_player_all_items(player_id, items_dict_map):
+    """
+    添加批量物品信息到指定槽位
+
+    http://mc.163.com/mcstudio/mc-dev/MCDocs/2-ModSDK%E6%A8%A1%E7%BB%84%E5%BC%80%E5%8F%91/02-Python%E8%84%9A%E6%9C%AC%E5%BC%80%E5%8F%91/99-ModAPI/4-%E7%BB%84%E4%BB%B6/2-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%BB%84%E4%BB%B6.html#setplayerallitems
+
+    :param player_id:
+    :param items_dict_map: dict 需要添加的物品的字典，字典的key是tuple([ItemPosType], slotPos)，value是需要添加的[物品信息字典]
+    :return: dict 设置结果，字典的key是tuple(ItemPosType, slot)，value为bool代表该槽位设置是否成功
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetPlayerAllItems(items_dict_map)
+
+
+def get_entity_item(entity_id, pos_type, slot_pos=0, get_user_data=False):
+    """
+    获取生物物品，支持获取背包，盔甲栏，副手以及主手物品
+
+    左右手及装备可以替代GetPlayerItem接口获取玩家的物品，**但背包不行**。获取生物背包目前支持驴、骡、羊驼以及其他带背包的自定义生物
+
+    :param entity_id:
+    :param pos_type: int [ItemPosType]枚举
+    :param slot_pos: int 槽位，获取INVENTORY及ARMOR时需要设置，其他情况写0即可
+    :param get_user_data: bool 是否获取userData，默认为False
+    :return: dict 物品信息字典，没有物品则返回None
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(entity_id)
+    return item_comp.GetEntityItem(pos_type, slot_pos, get_user_data)
+
+
+def set_entity_item(entity_id, pos_type, item_dict, slot_pos=0):
+    """
+    设置生物物品，建议开发者根据生物特性来进行设置，部分生物设置装备后可能不显示但是死亡后仍然会掉落所设置的装备
+
+    设置生物背包目前支持驴、骡、羊驼以及其他带背包的自定义生物。
+
+    该接口与spawnTo系列接口相比多了槽位限制，只能设置对应槽位的装备、左手物品，并且右手不能设置装备。溺尸暂不支持设置自定义装备。
+
+    如果传入的itemDict为None或{}，itemName为minecraft:air，count为0，均可以达到清除物品的效果。
+
+    玩家背包请使用SpawnItemToPlayerInv来生成物品，使用SetInvItemNum设置0来清除物品，其他部位也可以用该接口设置。
+
+    :param entity_id:
+    :param pos_type: int [ItemPosType]枚举
+    :param item_dict: dict 生物身上不同位置的[物品信息字典]列表，如果传入None将清除当前位置的物品/装备
+    :param slot_pos: int 容器槽位
+        如果ItemPosType为左右手可不传
+        如果ItemPosType为背包则对应背包槽位
+        如果ItemPosType为armor则对应装备位置，具体请看宏定义GetMinecraftEnum().ArmorSlotType.*
+    :return: bool 设置成功返回True
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(entity_id)
+    return item_comp.SetEntityItem(pos_type, item_dict, slot_pos)
+
+
+def get_item_custom_name(player_id, item_dict):
+    """
+    获取物品的自定义名称，与铁砧修改的名称一致
+
+    :param player_id:
+    :param item_dict: dict [物品信息字典]。如果是接口获取的item_dict，应该包含userData，即getUserData应该为True
+    :return: str 自定义名称
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.GetCustomName(item_dict)
+
+
+def set_item_custom_name(player_id, item_dict, name):
+    """
+    设置物品的自定义名称，与使用铁砧重命名一致
+
+    :param player_id:
+    :param item_dict: dict [物品信息字典]
+    :param name: str 物品名称。支持unicode
+    :return: bool 设置是否成功
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.SetCustomName(item_dict, name)
+
+
+def can_item_use_on_block(player_id, identifier, aux_value, block_pos, facing):
+    """
+
+    :param player_id:
+    :param identifier: str 物品标识，如minecraft:dye
+    :param aux_value: int 物品的附加值
+    :param block_pos: tuple(int,int,int) 位置坐标
+    :param facing: int 朝向，详见[Facing]枚举
+    :return: bool 是否可以放置
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.MayPlaceOn(identifier, aux_value, block_pos, facing)
+
+
+def get_item_user_data_in_server_event(event_name):
+    """
+    使物品相关 **服务端事件** 的[物品信息字典]参数带有userData。在mod初始化时调用即可
+
+    :param event_name: str 引擎事件名
+    :return: bool 是否成功
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(level_id)
+    # 这样调用之后，PlayerEatFoodServerEvent事件的itemDict参数会带有userData字段
+    return item_comp.GetUserDataInEvent(event_name)
+
+
+def set_player_selected_slot(player_id, slot):
+    """
+    设置玩家当前选中快捷栏物品的index
+
+    1.20 调整 由玩家分类移动到物品分类
+
+    1.18 新增 设置玩家当前选中快捷栏物品的index
+
+    :param player_id:
+    :param slot: int 快捷栏物品的index，从0开始，最大为8
+    :return: bool 是否设置成功
+    """
+    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
+    return player_comp.ChangeSelectSlot(slot)
+
+
+def get_player_selected_slot(player_id):
+    """
+    获取玩家当前选中槽位
+
+    :param player_id:
+    :return: int 当前槽位，错误时返回-1
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.GetSelectSlotId()
+
+
+def get_container_size(pos, dimension=0):
+    """
+    获取容器容量大小
+
+    此接口不支持末影箱，因为末影箱的size固定为27。
+
+    1.23 调整 废弃player_id参数
+
+    :param pos: tuple(int,int,int) 容器位置
+    :param dimension: int 方块所在维度，默认值为0，传入非负值时不依赖player_id，CreateItem可传入level_id，否则CreateItem需传入player_id来获取玩家当前维度
+    :return: int 箱子大小,错误值-1
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(level_id)
+    return item_comp.GetContainerSize(pos, dimension)
+
+
+def get_container_item(pos, slot_pos, dimension=0, get_user_data=False):
+    """
+    获取容器物品
+
+    容器的具体类型包括：箱子，陷阱箱，潜影盒，漏斗，木桶，投掷器，发射器
+
+    此接口不支持末影箱。对应的末影箱接口请参考 **GetEnderChestItem**
+
+    1.23 调整 废弃player_id参数
+
+    :param pos: tuple(int,int,int) 容器位置
+    :param slot_pos: int 容器槽位
+    :param dimension: int 方块所在维度，默认值为0，传入非负值时不依赖player_id，CreateItem可传入level_id，否则CreateItem需传入player_id来获取玩家当前维度
+    :param get_user_data: bool 是否获取userData，默认为False
+    :return: dict [物品信息字典]，没有物品则返回None
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(level_id)
+    return item_comp.GetContainerItem(pos, slot_pos, dimension, get_user_data)
+
+
+def get_ender_chest_item(player_id, slot_pos, get_user_data=False):
+    """
+    获取末影箱物品
+
+    :param player_id: str 玩家id
+    :param slot_pos: int 容器槽位
+    :param get_user_data: bool 是否获取userData，默认为False
+    :return: dict [物品信息字典]，没有物品则返回None
+    """
+    item_comp = serverApi.GetEngineCompFactory().CreateItem(player_id)
+    return item_comp.GetEnderChestItem(player_id, slot_pos, get_user_data)
+
+
+def get_recipe_result(recipe_id):
+    """
+    根据配方id获取配方结果。仅支持合成配方
+
+    :param recipe_id: str 配方id,对应配方json文件中的identifier字段
+    :return: list [dict]
+        itemName: str 物品名称id
+        auxValue: int 物品附加值
+        num: int 物品数目
+    """
+    recipe_comp = serverApi.GetEngineCompFactory().CreateRecipe(level_id)
+    return recipe_comp.GetRecipeResult(recipe_id)
+
+
+def get_recipes_by_input(input_identifier, tag, aux, max_result_num):
+    """
+    通过输入物品查询配方
+
+    在获取酿造台配方时，不匹配tag标签与aux值，药水的identifier需要输入全称，例如：minecraft:potion_type:long_turtle_master，否则无法获取正确的配方。
+    
+    需要遍历较多数据，不建议频繁调用
+
+    :param input_identifier: str 输入物品的标识符
+    :param tag: str 对应配方json中的tags字段里面的值
+    :param aux: int 输出物品的附加值, 不传参的话默认为0
+    :param max_result_num: int 最大输出条目数，若大于等于0时，结果超过maxResultNum，则只返回maxResultNum条。默认-1，表示返回全部
+    :return: list(dict)	返回符合条件的配方列表
+    """
+    recipe_comp = serverApi.GetEngineCompFactory().CreateRecipe(level_id)
+    return recipe_comp.GetRecipesByInput(input_identifier, tag, aux, max_result_num)
+
+
+def get_recipes_by_result(result_identifier, tag, aux=0):
+    """
+    通过输出物品查询配方所需要的输入材料
+
+    若配方为酿造台配方时，由于原版实现没有存储相应信息，不匹配tag标签与aux值
+
+    1.20 新增 通过输出物品查询配方所需要的输入材料
+
+    :param result_identifier: str 输出物品的标识符
+    :param tag: str 对应配方json中的tags字段里面的值
+    :param aux: int 输出物品的附加值, 不传参的话默认为0
+    :return: list(dict) 返回符合条件的配方列表
+    """
+    recipe_comp = serverApi.GetEngineCompFactory().CreateRecipe(level_id)
+    return recipe_comp.GetRecipesByResult(result_identifier, tag, aux)
