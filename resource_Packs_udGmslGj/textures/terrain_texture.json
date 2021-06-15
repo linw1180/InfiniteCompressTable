@@ -1,0 +1,24 @@
+{
+  "resource_pack_name": "vanilla",
+  "texture_name": "atlas.terrain",
+  "texture_data": {
+    "xl:block_compress_table_top": {
+      "textures": "textures/blocks/block_compress_table_top"
+    },
+    "xl:block_compress_table_front": {
+      "textures": "textures/blocks/block_compress_table_front"
+    },
+    "xl:block_compress_table_bottom": {
+      "textures": "textures/blocks/block_compress_table_bottom"
+    },
+    "xl:block_limited_compress_table_top": {
+      "textures": "textures/blocks/block_limited_compress_table_top"
+    },
+    "xl:block_limited_compress_table_front": {
+      "textures": "textures/blocks/block_limited_compress_table_front"
+    },
+    "xl:block_limited_compress_table_bottom": {
+      "textures": "textures/blocks/block_limited_compress_table_bottom"
+    }
+  }
+}

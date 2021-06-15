@@ -1,0 +1,27 @@
+{
+  "format_version": "1.12",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "xl:recipe_limited_compress_table"
+    },
+    "tags": [
+      "crafting_table"
+    ],
+    "pattern": [
+      "   ",
+      " @ ",
+      " # "
+    ],
+    "key": {
+      "@": {
+        "item": "xl:block_compress_table"
+      },
+      "#": {
+        "item": "minecraft:redstone"
+      }
+    },
+    "result": {
+      "item": "xl:block_limited_compress_table"
+    }
+  }
+}

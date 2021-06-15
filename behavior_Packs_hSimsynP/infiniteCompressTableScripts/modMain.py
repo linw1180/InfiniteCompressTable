@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import mod.server.extraServerApi as serverApi
 import mod.client.extraClientApi as clientApi
-
+import mod.server.extraServerApi as serverApi
 from mod.common.mod import Mod
 
 from infiniteCompressTableScripts.modCommon import *
@@ -25,4 +24,3 @@ class InfiniteCompressTable(object):
     @Mod.InitClient()
     def client_init(self):
         clientApi.RegisterSystem(ModName, ModClientSystemName, ModClientSystemPath)
-

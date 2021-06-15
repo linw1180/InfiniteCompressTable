@@ -12,6 +12,5 @@ class InfiniteCompressTableClientSystem(ClientSystem):
 
     # 初始化
     def __init__(self, namespace, system_name):
-        ClientSystem.__init__(self, namespace, system_name)
+        super(InfiniteCompressTableClientSystem, self).__init__(namespace, system_name)
         # TODO: 客户端系统功能
-

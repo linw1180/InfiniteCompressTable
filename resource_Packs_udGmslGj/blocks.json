@@ -1,0 +1,39 @@
+{
+  "format_version": [
+    1,
+    1,
+    0
+  ],
+  "xl:block_compress_table": {
+    "isotropic": {
+      "up": true
+    },
+    "textures": {
+      "up": "xl:block_compress_table_top",
+      "down": "xl:block_compress_table_bottom",
+      "side": "xl:block_compress_table_front"
+    },
+    "carried_textures": {
+      "up": "xl:block_compress_table_top",
+      "down": "xl:block_compress_table_bottom",
+      "side": "xl:block_compress_table_front"
+    },
+    "sound": "stone"
+  },
+  "xl:block_limited_compress_table": {
+    "isotropic": {
+      "up": true
+    },
+    "textures": {
+      "up": "xl:block_limited_compress_table_top",
+      "down": "xl:block_limited_compress_table_bottom",
+      "side": "xl:block_limited_compress_table_front"
+    },
+    "carried_textures": {
+      "up": "xl:block_limited_compress_table_top",
+      "down": "xl:block_limited_compress_table_bottom",
+      "side": "xl:block_limited_compress_table_front"
+    },
+    "sound": "stone"
+  }
+}

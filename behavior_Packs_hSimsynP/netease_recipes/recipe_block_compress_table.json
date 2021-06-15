@@ -1,0 +1,31 @@
+{
+  "format_version": "1.12",
+  "minecraft:recipe_shaped": {
+    "description": {
+      "identifier": "xl:recipe_block_compress_table"
+    },
+    "tags": ["crafting_table"],
+    "pattern": [
+      "$ $",
+      "#@#",
+      "#&#"
+    ],
+    "key": {
+      "$": {
+        "item": "minecraft:diamond"
+      },
+      "@": {
+        "item": "minecraft:hopper"
+      },
+      "#": {
+        "item": "minecraft:crafting_table"
+      },
+      "&": {
+        "item": "minecraft:redstone"
+      }
+    },
+    "result": {
+      "item": "xl:block_compress_table"
+    }
+  }
+}

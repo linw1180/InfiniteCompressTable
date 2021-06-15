@@ -11,4 +11,3 @@ ModServerSystemPath = 'infiniteCompressTableScripts.modServer.InfiniteCompressTa
 # Client System
 ModClientSystemName = 'InfiniteCompressTableClientSystem'
 ModClientSystemPath = 'infiniteCompressTableScripts.modClient.InfiniteCompressTableClientSystem'
-
