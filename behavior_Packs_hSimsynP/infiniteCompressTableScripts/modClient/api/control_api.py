@@ -92,9 +92,7 @@ def end_sprinting():
 def set_can_move(move):
     """
     设置是否响应移动
-
-    与SetMoveLock的区别：调用SetCanMove会清除当前Input Vector，例如玩家一直按着前进键，调用SetCanMove(False)会立即停下来，调用SetMoveLock(True)则不会。
-
+    
     :param move: bool True为可移动
     :return: bool 设置是否成功
     """
@@ -228,9 +226,7 @@ def set_can_all(all_operation):
 
 def set_move_lock(move_lock):
     """
-    设置是否锁住移动。实际上为是否响应十字键与遥感的操作。
-
-    与SetCanMove的区别：调用SetCanMove会清除当前Input Vector，例如玩家一直按着前进键，调用SetCanMove(False)会立即停下来，调用SetMoveLock(True)则不会。
+    设置是否锁住移动，与SetCanMove的区别：设置了SetCanMove(False)之后actorMotion组件的SetMotion会失效，而用moveLock为True则不会
 
     :param move_lock: bool True为锁住
     :return: bool 设置是否成功
@@ -285,23 +281,6 @@ def get_hold_time_threshold_in_ms():
     return operation_comp.GetHoldTimeThresholdInMs()
 
 
-def set_device_vibrate(milli_seconds):
-    """
-    设置设备震动
-
-    * 设置时间区间为[1,5000]毫秒，如果milliSeconds参数大于该区间将会被设置为5000毫秒，小于则设为1毫秒
-    * 调用时距离上次震动结束的时间不能短于2秒，如果短于2秒本次设置将会失败
-    * 设置震动失败（函数返回False）的可能原因：距离上次震动结束还未超过2秒、当前已经处于震动状态、设备不支持震动等
-    * 即使函数返回值为True，也有可能因为未正确判断设备是否支持震动、设备权限上禁止震动等原因未能真正震动
-    * 在目前版本中还不支持对IOS设备进行震动
-
-    :param milli_seconds: int 震动时间（单位：毫秒）
-    :return: bool 设置是否成功
-    """
-    device_comp = clientApi.GetEngineCompFactory().CreateDevice(local_player)
-    return device_comp.SetDeviceVibrate(milli_seconds)
-
-
 def get_perspective(entity_id):
     """
     获取当前的视角模式
@@ -345,63 +324,3 @@ def get_ui_profile():
     """
     view_comp = clientApi.GetEngineCompFactory().CreatePlayerView(level_id)
     return view_comp.GetUIProfile()
-
-
-def set_ui_profile(profile_type):
-    """
-    设置"UI 档案"模式
-
-    :param profile_type: int 0表示经典模式，1表示Pocket模式
-    :return: 0表示经典模式，1表示Pocket模式
-    """
-    view_comp = clientApi.GetEngineCompFactory().CreatePlayerView(level_id)
-    return view_comp.SetUIProfile(profile_type)
-
-
-def get_toggle_option(option_id):
-    """
-    获得某个开关设置值的接口
-
-    :param option_id: str [OptionId]枚举
-    :return: -1：类型不支持；0：开关关闭； 1: 开关打开；
-    """
-    view_comp = clientApi.GetEngineCompFactory().CreatePlayerView(level_id)
-    return view_comp.GetToggleOption(option_id)
-
-
-def set_toggle_option(option_id, on):
-    """
-    修改开关型设置的接口
-
-    :param option_id: str [OptionId]枚举
-    :param on: bool 是否打开开关，True为开，False为关
-    :return: -1：类型不支持；0：开关关闭； 1: 开关打开；
-    """
-    view_comp = clientApi.GetEngineCompFactory().CreatePlayerView(level_id)
-    return view_comp.SetToggleOption(option_id, on)
-
-
-def highlight_box_selection(is_highlight):
-    """
-    镜头移动时高亮当前视角中心所指的方块
-
-    功能实现上面其实是 设置->视频->轮廓设置 的一层代码封装，但不会影响到原本轮廓设置的值，如果设置为高亮，效果与关闭轮廓设置时相同，如果设置为非高亮，效果则取决于当前是否设置了轮廓设置，如果设置了，则不高亮。
-    
-    重启后设置失效
-
-    :param is_highlight: bool 是否高亮，True为高亮，False为不高亮，默认为不高亮
-    :return: -1：类型不支持；0：开关关闭； 1: 开关打开；
-    """
-    view_comp = clientApi.GetEngineCompFactory().CreatePlayerView(level_id)
-    return view_comp.HighlightBoxSelection(is_highlight)
-
-
-def set_split_control_can_change(can_change):
-    """
-    设置是否允许使用准星瞄准按钮
-
-    :param can_change: bool 是否允许
-    :return: bool 设置是否成功
-    """
-    view_comp = clientApi.GetEngineCompFactory().CreatePlayerView(level_id)
-    return view_comp.SetSplitControlCanChange(can_change)

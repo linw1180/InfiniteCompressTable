@@ -20,26 +20,6 @@ def register_block_patterns(pattern, defines, result_actor_name):
     return block_comp.RegisterBlockPatterns(pattern, defines, result_actor_name)
 
 
-def create_micro_block_res_str(identifier, start, end, color_map=None, is_merge=False, icon=''):
-    """
-    生成微缩方块资源Json字符串
-
-    https://mc.163.com/mcstudio/mc-dev/MCDocs/2-ModSDK%E6%A8%A1%E7%BB%84%E5%BC%80%E5%8F%91beta/03-%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B8%B8%E6%88%8F%E5%86%85%E5%AE%B9/10-%E5%BE%AE%E7%BC%A9%E6%96%B9%E5%9D%97.html#%E5%BE%AE%E7%BC%A9%E6%96%B9%E5%9D%97
-
-    TODO 是否需要加上写入文件操作?
-
-    :param identifier: str 微缩方块唯一标识
-    :param start: tuple(int,int,int) 微缩起始坐标
-    :param end: tuple(int,int,int) 微缩结束坐标
-    :param color_map: dict 默认为None，微缩方块颜色对应表
-    :param is_merge: bool 默认为False，是否合并同类型方块
-    :param icon: str 默认为空字符串，微缩方块图标，需要定义在 terrain_texture.json 中
-    :return: str 生成的微缩方块的资源字符串
-    """
-    block_comp = serverApi.GetEngineCompFactory().CreateBlock(level_id)
-    return block_comp.CreateMicroBlockResStr(identifier, start, end, color_map, is_merge, icon)
-
-
 def get_block_entity_data(dimension, pos):
     """
     用于获取可操作某个自定义方块实体数据的对象，操作方式与dict类似
@@ -59,21 +39,24 @@ def get_block_entity_data(dimension, pos):
     return block_entity_comp.GetBlockEntityData(dimension, pos)
 
 
-def check_block_to_pos(from_pos, to_pos, dimension=0):
+def check_block_to_pos(player_id, from_pos, to_pos, dimension=-1):
     """
     判断位置之间是否有方块
 
-    1.23 调整 废弃player_id参数
-
     1.20 调整 新增dimensionId参数，默认为-1，传入非负值时不依赖playerId，可判断对应维度的常加载区块内位置之间是否有方块
 
+    :param player_id:
     :param from_pos: tuple(float,float,float) 起始位置
     :param to_pos: tuple(float,float,float) 终止位置
-    :param dimension: int 位置所在维度，默认值为0，传入非负值时不依赖playerId
+    :param dimension: int 位置所在维度，默认值为-1，传入非负值时不依赖playerId
     :return: int result -1：获取失败  0：没有方块  1：有方块
     """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
-    return block_info_comp.CheckBlockToPos(from_pos, to_pos, dimension)
+    if dimension > -1:
+        block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
+        return block_info_comp.CheckBlockToPos(from_pos, to_pos, dimension)
+
+    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(player_id)
+    return block_info_comp.CheckBlockToPos(from_pos, to_pos)
 
 
 def clear_block_tile_entity_custom_data(player_id, pos):
@@ -147,45 +130,47 @@ def get_block_entity_info(dimension, pos):
     return block_entity_comp.GetBlockEntityData(dimension, pos)
 
 
-def get_block_light_level(pos, dimension=0):
+def get_block_light_level(player_id, pos, dimension=-1):
     """
     获取方块位置的光照等级
 
-    1.23 调整 废弃player_id参数
-
     1.20 调整 新增dimensionId参数，默认为-1，传入非负值时不依赖playerId，可获取对应维度的常加载区块内光照等级
 
+    :param player_id:
     :param pos: tuple(int,int,int) 方块位置
-    :param dimension: int 方块所在维度，默认值为0，传入非负值时不依赖playerId
+    :param dimension: int 方块所在维度，默认值为-1，传入非负值时不依赖playerId
     :return: int 光照等级
     """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
-    return block_info_comp.GetBlockLightLevel(pos, dimension)
+    if dimension > -1:
+        block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
+        return block_info_comp.GetBlockLightLevel(pos, dimension)
+
+    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(player_id)
+    return block_info_comp.GetBlockLightLevel(pos)
 
 
-def get_block(pos, dimension=0):
+def get_block(player_id, pos, dimension=-1):
     """
     获取某一位置的block
 
-    已经加载的地形才能获取方块信息，支持获取对应维度的常加载区块内方块信息
-
-    对于有多种状态的方块，aux计算比较复杂，推荐使用GetBlockStates获取方块状态字典
-
-    1.23 调整 废弃player_id参数
-
     1.20 调整 新增dimensionId参数，默认为-1，传入非负值时不依赖playerId，可在对应维度的常加载区块获取方块
 
+    :param player_id:
     :param pos: tuple(int,int,int) 方块位置
-    :param dimension: int 方块所在维度，默认值为0，传入非负值时不依赖playerId
+    :param dimension: int 方块所在维度，默认值为-1，传入非负值时不依赖playerId
     :return: dict 方块信息字典
         name: str 必须设置，方块identifier，包含命名空间及名称，如minecraft:air
         aux: int 方块附加值，可缺省，默认为0
     """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
-    return block_info_comp.GetBlockNew(pos, dimension)
+    if dimension > -1:
+        block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
+        return block_info_comp.GetBlockNew(pos, dimension)
+
+    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(player_id)
+    return block_info_comp.GetBlockNew(pos)
 
 
-def set_block(pos, block_dict, dimension=0, old_block_handling=0):
+def set_block(player_id, pos, block_dict, old_block_handling=0, dimension=-1):
     """
     设置某一位置的方块
 
@@ -195,24 +180,25 @@ def set_block(pos, block_dict, dimension=0, old_block_handling=0):
     例如在箱子中放置了物品，使用SetBlockNew接口将箱子方块替换为箱子方块后，新的箱子中依然保留旧箱子内的物品。
     要避免这种情况，中间添加一次不同方块实体类型（或不含方块实体）的方块替换即可。比如先将箱子替换为空气，再将空气替换为箱子。
 
-    对于有多种状态的方块，aux计算方式比较复杂，推荐先设置完方块后再使用SetBlockStates设置方块状态字典
-
-    1.23 调整 废弃player_id参数
+    1.18 调整 增加参数oldBlockHandling，默认为替换replace
 
     1.20 调整 增加参数dimensionId，默认为-1，传入非负值时不依赖playerId，可在对应维度的常加载区块设置方块
 
-    1.18 调整 增加参数oldBlockHandling，默认为替换replace
-
+    :param player_id:
     :param pos: tuple(int,int,int) 方块位置
     :param block_dict: dict 方块信息字典
         name: str 必须设置，方块identifier，包含命名空间及名称，如minecraft:air
         aux: int 方块附加值，可缺省，默认为0
-    :param dimension: int 方块所在维度，默认值为0，传入非负值时不依赖playerId
     :param old_block_handling: int 0：替换，1：销毁，2：保留，默认为0
+    :param dimension: int 方块所在维度，默认值为-1，传入非负值时不依赖playerId
     :return: bool 设置结果
     """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
-    return block_info_comp.SetBlockNew(pos, block_dict, old_block_handling, dimension)
+    if dimension > -1:
+        block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
+        return block_info_comp.SetBlockNew(pos, block_dict, old_block_handling, dimension)
+
+    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(player_id)
+    return block_info_comp.SetBlockNew(pos, block_dict, old_block_handling)
 
 
 def get_block_tile_entity_custom_data(player_id, pos, key):
@@ -315,20 +301,6 @@ def set_sign_block_text(player_id, pos, text):
     return block_info_comp.SetSignBlockText(pos, text)
 
 
-def get_destroy_total_time(block_name, item_name=None):
-    """
-    获取使用物品破坏方块需要的时间
-
-    1.22 新增 获取使用物品破坏方块需要的时间
-
-    :param block_name: str 方块标识符，格式[namespace:name:auxvalue]，auxvalue默认为0
-    :param item_name: str 物品标识符，格式[namespace:name:auxvalue]，auxvalue默认为0，默认为None（不使用物品）
-    :return: int 高度
-    """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
-    return block_info_comp.GetDestroyTotalTime(block_name, item_name)
-
-
 def get_top_block_height(pos, dimension=0):
     """
     获取某一位置最高的非空气方块的高度
@@ -343,33 +315,7 @@ def get_top_block_height(pos, dimension=0):
     return block_info_comp.GetTopBlockHeight(pos, dimension)
 
 
-def change_listen_block_remove_event(identifier, listen):
-    """
-    是否监听方块BlockRemoveServerEvent事件，可以动态修改json组件netease:listen_block_remove的值
-
-    :param identifier: str 方块identifier，如minecraft:wheat
-    :param listen: bool 是否监听
-    :return: bool 是否设置成功
-    """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
-    return block_info_comp.ListenOnBlockRemoveEvent(identifier, listen)
-
-
-def can_place_block(identifier, block_pos, facing, dimension=0):
-    """
-    判断方块是否可以放置
-
-    :param identifier: str 方块identifier，如minecraft:wheat
-    :param block_pos: tuple(int,int,int) 方块将要放置的坐标
-    :param facing: int 朝向，详见[Facing]枚举
-    :param dimension: int 维度，默认为主世界0
-    :return: bool 方块是否可以放置
-    """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
-    return block_info_comp.MayPlace(identifier, block_pos, facing, dimension)
-
-
-def player_destroy_block(player_id, pos, particle=True, send_inv=False):
+def player_destroy_block(player_id, pos):
     """
     玩家使用手上工具破坏方块
 
@@ -377,117 +323,60 @@ def player_destroy_block(player_id, pos, particle=True, send_inv=False):
 
     会触发ServerPlayerTryDestroyBlockEvent事件，并且可以被这个事件cancel
 
-    1.23 调整 新增sendInv参数，用于同步服务端背包信息,默认为不同步
-
-    1.22 调整 新增particle参数，用于设置是否开启破坏粒子效果,1:开启,0:关闭,默认为1
-
     1.20 新增 增加使用手上工具破坏方块接口
 
     :param player_id: 此处playerId为block的破坏者
     :param pos: tuple(int,int,int) 方块位置
-    :param particle: bool 是否开启破坏粒子效果，默认为开
-    :param send_inv: bool 是否同步服务端背包信息，默认为不同步。
-        因为破坏方块可能会造成手持物品耐久度降低等信息改变，不同步信息可能会造成后续一些逻辑异常，若大批量破坏方块，每次同步会有性能问题，建议前面的调用可令sendInv为False，在最后一次调用此函数时传入sendInv为True。
     :return: bool 设置结果
     """
     block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(player_id)
-    return block_info_comp.PlayerDestoryBlock(pos, 1 if particle else 0, send_inv)
+    return block_info_comp.PlayerDestoryBlock(pos)
 
 
-def player_use_item_to_pos(player_id, pos, slot_type, slot_pos=0, facing=1):
-    """
-    玩家对某个坐标使用物品
-
-    当使用抛射物时，只有在非创造模式下才会返回True
-
-    如果要对"盔甲架"等实体使用物品，请使用PlayerUseItemToEntity接口
-
-    只能对玩家周边200格以内的坐标使用
-
-    :param player_id: 使用物品的玩家
-    :param pos: tuple(int,int,int) 坐标
-    :param slot_type: int 物品所在的地方[ItemPosType]枚举
-    :param slot_pos: int 槽位，获取INVENTORY及ARMOR时需要设置，其他情况写0即可
-    :param facing: int 朝向，详见[Facing]枚举
-    :return: bool 设置结果
-    """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(player_id)
-    return block_info_comp.PlayerUseItemToPos(pos, slot_type, slot_pos, facing)
-
-
-def player_use_item_to_entity(player_id, entity_id):
-    """
-    玩家使用手上物品对某个生物使用
-
-    :param player_id: 使用物品的玩家
-    :param entity_id: str 生物entityId
-    :return: bool 设置结果
-    """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(player_id)
-    return block_info_comp.PlayerUseItemToEntity(entity_id)
-
-
-def spawn_resources(identifier, pos, aux, **kwargs):
+def spawn_resources(identifier, pos, aux, dimension_id=-1, probability=1.0, bonus_loot_level=0, ):
     """
     产生方块随机掉落（该方法不适用于实体方块）
 
-    1.20 调整 新增dimensionId，默认为-1，传入非负值时用于控制产生方块掉落的维度，可在对应维度的常加载区块产生掉落
-
     1.18 新增 产生方块随机掉落
 
-    :param identifier: str 方块的identifier，如minecraft:wool
-    :param pos: tuple(int,int,int) 掉落位置
-    :param aux: int 方块的附加值
-    :param kwargs: dict
-        dimensionId: int 掉落方块的维度，默认值为0，传入非负值时用于获取产生方块掉落的维度；否则将随机挑选一个存在玩家的维度产生掉落
-        probability: float 掉落概率，范围为[0, 1]，0为不掉落，1为100%掉落，对部分农作物树叶不生效
-        bonusLootLevel: int [时运等级]，默认为0，只对部分方块生效
-        allowRandomness: bool 是否允许随机采集，默认为True，如果为False，掉落概率probability无效
-    :return: bool 是否成功
-    """
-    block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
-    return block_info_comp.SpawnResources(identifier, pos, aux, **kwargs)
-
-
-def spawn_resources_silk_touched(identifier, pos, aux, dimension_id):
-    """
-    模拟方块精准采集掉落
-
-    如果指定方块不属于精准采集方块，返回False
-
-    1.22 新增 模拟方块精准采集掉落
+    1.20 调整 新增dimensionId，默认为-1，传入非负值时用于控制产生方块掉落的维度，可在对应维度的常加载区块产生掉落
 
     :param identifier: str 方块的identifier，如minecraft:wool
     :param pos: tuple(int,int,int) 掉落位置
     :param aux: int 方块的附加值
-    :param dimension_id: int 掉落方块的维度，默认值为0，传入非负值时用于获取产生方块掉落的维度；否则将随机挑选一个存在玩家的维度产生掉落
+    :param probability: float 掉落概率，范围为[0, 1]，0为不掉落，1为100%掉落，对部分农作物树叶不生效
+    :param bonus_loot_level: int [时运等级]，默认为0，只对部分方块生效
+    :param dimension_id: int 掉落方块的维度，默认值为-1，传入非负值时用于获取产生方块掉落的维度；否则将随机挑选一个存在玩家的维度产生掉落
     :return: bool 是否成功
     """
     block_info_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(level_id)
-    return block_info_comp.SpawnResourcesSilkTouched(identifier, pos, aux, dimension_id)
+    return block_info_comp.SpawnResources(identifier, pos, aux, probability, bonus_loot_level, dimension_id)
 
 
-def get_block_states(pos, dimension=0):
+def get_block_states(player_id, pos, dimension=-1):
     """
     获取[方块状态]
 
     https://minecraft.gamepedia.com/Block_states
 
-    1.23 调整 废弃player_id参数
+    1.18 新增 获取方块状态
 
     1.20 调整 新增dimensionId参数，默认为-1，传入非负值时不依赖playerId，可获取对应维度的常加载区块内方块状态
 
-    1.18 新增 获取方块状态
-
+    :param player_id:
     :param pos: tuple(float,float,float) 方块位置
-    :param dimension: int 方块所在维度，默认值为0，传入非负值时不依赖playerId
+    :param dimension: int 方块所在维度，默认值为-1，传入非负值时不依赖playerId
     :return: dict 方块状态，异常时为None
     """
-    block_state_comp = serverApi.GetEngineCompFactory().CreateBlockState(level_id)
-    return block_state_comp.GetBlockStates(pos, dimension)
+    if dimension > -1:
+        block_state_comp = serverApi.GetEngineCompFactory().CreateBlockBlockState(level_id)
+        return block_state_comp.GetBlockStates(pos, dimension)
+
+    block_state_comp = serverApi.GetEngineCompFactory().CreateBlockState(player_id)
+    return block_state_comp.GetBlockStates(pos)
 
 
-def set_block_states(pos, data, dimension=0):
+def set_block_states(player_id, pos, data, dimension=-1):
     """
     获取[方块状态]
 
@@ -495,19 +384,22 @@ def set_block_states(pos, data, dimension=0):
 
     仅可设置已加载区块内的方块状态，支持设置对应维度的常加载区块内方块状态
 
-    1.23 调整 废弃player_id参数
-
     1.18 新增 设置方块状态
 
     1.20 调整 增加参数dimensionId，默认为-1，传入非负值时不依赖playerId，可设置对应维度的常加载区块内方块状态
 
+    :param player_id:
     :param pos: tuple(float,float,float) 方块位置
     :param data: dict 方块状态
-    :param dimension: int 方块所在维度，默认值为0，传入非负值时不依赖playerId
+    :param dimension: int 方块所在维度，默认值为-1，传入非负值时不依赖playerId
     :return: bool 设置是否成功
     """
-    block_state_comp = serverApi.GetEngineCompFactory().CreateBlockState(level_id)
-    return block_state_comp.SetBlockStates(pos, data, dimension)
+    if dimension > -1:
+        block_state_comp = serverApi.GetEngineCompFactory().CreateBlockState(level_id)
+        return block_state_comp.SetBlockStates(pos, data, dimension)
+
+    block_state_comp = serverApi.GetEngineCompFactory().CreateBlockState(player_id)
+    return block_state_comp.SetBlockStates(pos, data)
 
 
 def get_block_aux_from_states(block_name, states):
@@ -590,19 +482,22 @@ def get_block_powered_state(pos, dimension):
     return red_stone_comp.GetBlockPoweredState(pos, dimension)
 
 
-def get_redstone_signal_strength(pos, dimension=0):
+def get_redstone_signal_strength(player_id, pos, dimension=-1):
     """
     获取某个坐标的红石信号强度
 
-    1.23 调整 废弃player_id参数
+    1.18 新增 获取某个坐标的红石信号强度
 
     1.20 调整 新增dimensionId参数，默认为-1，传入非负值时不依赖playerId，可获取对应维度的常加载区块内红石信号强度
 
-    1.18 新增 获取某个坐标的红石信号强度
-
+    :param player_id:
     :param pos: pos tuple(float,float,float) 坐标位置
-    :param dimension: int 目标维度，默认值为0，传入非负值时不依赖playerId，CreateRedStone可传入levelId，否则CreateRedStone需传入playerId来获取玩家当前维度
+    :param dimension: int 目标维度，默认值为-1，传入非负值时不依赖playerId，CreateRedStone可传入levelId，否则CreateRedStone需传入playerId来获取玩家当前维度
     :return: int 红石信号强度[0, 15]
     """
-    red_stone_comp = serverApi.GetEngineCompFactory().CreateRedStone(level_id)
-    return red_stone_comp.GetStrength(pos, dimension)
+    if dimension > -1:
+        red_stone_comp = serverApi.GetEngineCompFactory().CreateRedStone(level_id)
+        return red_stone_comp.GetStrength(pos, dimension)
+
+    red_stone_comp = serverApi.GetEngineCompFactory().CreateRedStone(player_id)
+    return red_stone_comp.GetStrength(pos)

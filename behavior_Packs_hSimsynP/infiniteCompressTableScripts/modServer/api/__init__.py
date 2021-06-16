@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from actor_motion_api import *
+from audio_api import *
 from biome_api import *
 from block_api import *
 from command_api import *

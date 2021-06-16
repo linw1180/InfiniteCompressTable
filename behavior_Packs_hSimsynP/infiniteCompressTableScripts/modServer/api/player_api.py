@@ -17,34 +17,7 @@ def get_player_exp(player_id, is_percent=True):
     return exp_comp.GetPlayerExp(is_percent)
 
 
-def get_player_total_exp(player_id):
-    """
-    获取玩家的总经验值
-
-    :param player_id:
-    :return: int 经验值，正整数。获取失败的情况下返回-1。
-    """
-    exp_comp = serverApi.GetEngineCompFactory().CreateExp(player_id)
-    return exp_comp.GetPlayerTotalExp()
-
-
-def set_player_total_exp(player_id, exp):
-    """
-    设置玩家的总经验值
-
-    根据总经验值会重新计算等级，该接口可引起等级的变化
-
-    内部运算采用浮点数，数值较大时会出现误差
-
-    :param player_id:
-    :param exp: int	总经验值，正整数
-    :return: bool 设置是否成功
-    """
-    exp_comp = serverApi.GetEngineCompFactory().CreateExp(player_id)
-    return exp_comp.SetPlayerTotalExp(exp)
-
-
-def add_player_exp(player_id, exp):
+def add_player_experience(player_id, exp):
     """
     修改玩家经验值
 
@@ -58,7 +31,7 @@ def add_player_exp(player_id, exp):
     return exp_comp.AddPlayerExperience(exp)
 
 
-def set_exp_orb_value(player_id, exp):
+def set_experience_orb_value(player_id, exp):
     """
     修改经验球经验
 
@@ -74,18 +47,7 @@ def set_exp_orb_value(player_id, exp):
     return exp_comp.SetOrbExperience(exp)
 
 
-def get_exp_orb_value(player_id):
-    """
-    获取经验球的经验
-
-    :param player_id:
-    :return: int 经验值，正整数。获取失败的情况下返回-1。
-    """
-    exp_comp = serverApi.GetEngineCompFactory().CreateExp(player_id)
-    return exp_comp.GetOrbExperience()
-
-
-def create_exp_orb(player_id, exp, position, is_special=True):
+def create_experience_orb(player_id, exp, position, is_special=True):
     """
     创建专属经验球
 
@@ -210,157 +172,6 @@ def set_player_max_exhaustion_value(player_id, value):
     """
     player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
     return player_comp.SetPlayerMaxExhaustionValue(value)
-
-
-def get_player_health_level(player_id):
-    """
-    获取玩家健康临界值，当饥饿值大于等于健康临界值时会自动恢复血量，开启饥饿值且开启自然恢复时有效。原版默认值为18
-
-    :param player_id:
-    :return: int 健康临界值，-1表示获取失败
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.GetPlayerHealthLevel()
-
-
-def set_player_health_level(player_id, health_level):
-    """
-    设置玩家健康临界值，当饥饿值大于等于健康临界值时会自动恢复血量，开启饥饿值且开启自然恢复时有效.原版默认值为18
-
-    注：健康临界值始终大于等于饥饿临界值。如果设置的健康临界值小于饥饿临界值，饥饿临界值将被设置为当前的健康临界值
-
-    :param player_id:
-    :param health_level: int 健康临界值
-    :return: bool 是否设置成功
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.SetPlayerHealthLevel(health_level)
-
-
-def get_player_health_tick(player_id):
-    """
-    获取玩家自然恢复速度，当饥饿值大于等于健康临界值时会自动恢复血量，开启饥饿值且开启自然恢复时有效。
-
-    原版默认值为80刻（即每4秒）恢复1点血量
-
-    :param player_id:
-    :return: int 自然恢复速度，-1表示获取失败
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.GetPlayerHealthTick()
-
-
-def set_player_health_tick(player_id, health_tick):
-    """
-    设置玩家自然恢复速度，当饥饿值大于等于健康临界值时会自动恢复血量，开启饥饿值且开启自然恢复时有效。
-
-    最小值为1，即每秒恢复20点血量
-
-    原版默认值为80刻（即每4秒）恢复1点血量
-
-    :param player_id:
-    :param health_tick: int 自然恢复速度
-    :return: bool 是否设置成功
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.SetPlayerHealthTick(health_tick)
-
-
-def is_player_natural_regen(player_id):
-    """
-    是否开启玩家自然恢复，当饥饿值大于等于健康临界值时会自动恢复血量，开启饥饿值且开启自然恢复时有效。原版默认开启
-
-    :param player_id:
-    :return: bool True表示开启，False表示关闭，None表示获取失败
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.IsPlayerNaturalRegen()
-
-
-def set_player_natural_regen(player_id, value):
-    """
-    设置是否开启玩家自然恢复，当饥饿值大于等于健康临界值时会自动恢复血量，开启饥饿值且开启自然恢复时有效.原版默认开启
-
-    :param player_id:
-    :param value: bool True开启，False关闭
-    :return: bool 是否设置成功
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.SetPlayerNaturalRegen(value)
-
-
-def get_player_starve_level(player_id):
-    """
-    获取玩家饥饿临界值，当饥饿值小于饥饿临界值时会自动扣除血量，开启饥饿值且开启饥饿掉血时有效。原版默认值为1
-
-    :param player_id:
-    :return: int 饥饿临界值 -1表示获取失败
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.GetPlayerStarveLevel()
-
-
-def set_player_starve_level(player_id, starve_level):
-    """
-    设置玩家饥饿临界值，当饥饿值小于饥饿临界值时会自动扣除血量，开启饥饿值且开启饥饿掉血时有效。原版默认值为1
-
-    健康临界值始终大于等于饥饿临界值。如果设置的饥饿临界值大于健康临界值，将被设置为当前的健康临界值
-
-    :param player_id:
-    :param starve_level: int 饥饿临界值
-    :return: bool 是否设置成功
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.SetPlayerStarveLevel(starve_level)
-
-
-def get_player_starve_tick(player_id):
-    """
-    获取玩家饥饿掉血速度，当饥饿值小于饥饿临界值时会自动扣除血量，开启饥饿值且开启饥饿掉血时有效。原版默认值为80刻（即每4秒）扣除1点血量
-
-    :param player_id:
-    :return: int 饥饿掉血速度，-1表示获取失败
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.GetPlayerStarveTick()
-
-
-def set_player_starve_tick(player_id, starve_tick):
-    """
-    设置玩家饥饿掉血速度，当饥饿值小于饥饿临界值时会自动扣除血量，开启饥饿值且开启饥饿掉血时有效。
-
-    最小值为1，即每秒扣20点血量
-
-    原版默认值为80刻（即每4秒）扣除1点血量
-
-    :param player_id:
-    :param starve_tick: int 饥饿掉血速度
-    :return: bool 是否设置成功
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.SetPlayerStarveTick(starve_tick)
-
-
-def is_player_natural_starve(player_id):
-    """
-    是否开启玩家饥饿掉血，当饥饿值小于饥饿临界值时会自动恢复血量，开启饥饿值且开启饥饿掉血时有效。原版默认开启
-
-    :return: bool True表示开启，False表示关闭，None表示获取失败
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.IsPlayerNaturalStarve()
-
-
-def set_player_natural_starve(player_id, value):
-    """
-    设置是否开启玩家饥饿掉血，当饥饿值小于饥饿临界值时会自动扣除血量，开启饥饿值且开启饥饿掉血时有效.原版默认开启
-
-    :param player_id:
-    :param value: bool True开启，False关闭
-    :return:
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.SetPlayerNaturalStarve(value)
 
 
 def enable_hit_player_crit_box(player_id):
@@ -508,7 +319,7 @@ def is_sneaking(player_id):
     :return: bool 当前玩家是否处于潜行状态
     """
     player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.isSneaking()
+    return player_comp.IsSneaking()
 
 
 def is_swimming(player_id):
@@ -521,7 +332,7 @@ def is_swimming(player_id):
     :return: bool 当前玩家是否处于游泳状态
     """
     player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.isSwimming()
+    return player_comp.IsSwiming()
 
 
 def clear_defined_level_up_cost(player_id, level):
@@ -549,18 +360,3 @@ def get_player_operation(player_id):
     """
     player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
     return player_comp.GetPlayerOperation()
-
-
-def set_player_respawn_pos(player_id, pos, dimension=0):
-    """
-    设置玩家复活的位置
-
-    1.22 调整 新增参数dimensionId，支持设置复活维度
-
-    :param player_id:
-    :param pos: tuple(int,int,int) 复活点的位置坐标
-    :param dimension: 复活点的维度，默认值为0（主世界），注意1：维度21是不可用的；注意2：不能在玩家死亡（PlayerDieEvent）之后设置复活点
-    :return: bool 是否设置成功
-    """
-    player_comp = serverApi.GetEngineCompFactory().CreatePlayer(player_id)
-    return player_comp.SetPlayerRespawnPos(pos, dimension)

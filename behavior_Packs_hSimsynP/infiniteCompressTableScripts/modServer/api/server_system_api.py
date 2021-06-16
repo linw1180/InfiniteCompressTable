@@ -16,7 +16,7 @@ def get_platform():
 
     :return: int 0：Window；1：IOS；2：Android；-1：其他
     """
-    return serverApi.GetPlatform()
+    return extra_server_api.get_system(ModName, ModServerSystemName).GetPlatform()
 
 
 def broadcast_event(event_name, event_data):
@@ -54,6 +54,17 @@ def create_event_data():
     return extra_server_api.get_system(ModName, ModServerSystemName).CreateEventData()
 
 
+def define_event(event_name):
+    # type: (str) -> None
+    """
+    定义自定义事件
+
+    :param event_name: str 事件名
+    :return:
+    """
+    extra_server_api.get_system(ModName, ModServerSystemName).DefineEvent(event_name)
+
+
 def listen_for_event(namespace, system_name, event_name, instance, func, priority=0):
     """
     注册监听某个系统抛出的事件。若监听引擎事件时，namespace和systemName分别为GetEngineNamespace()和GetEngineSystemName()
@@ -81,6 +92,17 @@ def notify_to_client(target_id, event_name, event_data):
     :return:
     """
     extra_server_api.get_system(ModName, ModServerSystemName).NotifyToClient(target_id, event_name, event_data)
+
+
+def un_define_event(event_name):
+    # type: (str) -> None
+    """
+    取消自定义事件
+
+    :param event_name: str 事件名
+    :return:
+    """
+    extra_server_api.get_system(ModName, ModServerSystemName).UnDefineEvent(event_name)
 
 
 def un_listen_all_events():

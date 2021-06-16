@@ -69,20 +69,6 @@ def set_particle_fade_distance(particle_entity_id, fade_distance):
     return particle_comp.SetFadeDistance(fade_distance)
 
 
-def set_sfx_point_filtering(particle_entity_id, use):
-    """
-    设置粒子材质的纹理滤波是否使用点滤波方法。默认为使用双线性滤波
-
-    使用点滤波的图像通常边缘清晰、可能会有较强烈的锯齿感；使用双线性插值的图像通常比较平滑、可能会使图像一定程度上变得模糊
-
-    :param particle_entity_id:
-    :param use: True为使用点滤波，False为使用双线性插值（默认使用）
-    :return: bool 设置是否成功
-    """
-    particle_comp = clientApi.GetEngineCompFactory().CreateParticleControl(particle_entity_id)
-    return particle_comp.SetUsePointFiltering(use)
-
-
 def set_particle_pos(particle_entity_id, pos):
     """
     设置粒子的位置
@@ -107,7 +93,7 @@ def set_particle_rot(particle_entity_id, rot):
     return particle_comp.SetRot(rot)
 
 
-def bind_particle_to_entity(particle_entity_id, entity_id, offset, rot, correction=False):
+def bind_particle_to_entity(particle_entity_id, entity_id, offset, rot, correction=True):
     """
     绑定entity
     
@@ -115,7 +101,7 @@ def bind_particle_to_entity(particle_entity_id, entity_id, offset, rot, correcti
     :param entity_id: str 绑定的entity的ID
     :param offset: tuple(float,float,float) 绑定的偏移量，相对绑定entity脚下中心
     :param rot: tuple(float,float,float) 绑定的旋转角度
-    :param correction: bool 默认不开启，开启后可以使特效的旋转角度准确设置为参照玩家的相对角度
+    :param correction: bool 默认开启，开启后可以使特效的旋转角度准确设置为参照玩家的相对角度
     :return: bool 设置是否成功
     """
     particle_comp = clientApi.GetEngineCompFactory().CreateParticleEntityBind(particle_entity_id)

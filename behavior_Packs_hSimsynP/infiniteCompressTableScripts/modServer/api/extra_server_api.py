@@ -3,12 +3,15 @@
 """
 这里是一些服务端的基础API接口，完成基础的系统和组件的初始化，同时也能从这个module中获取到一些通用的枚举类和levelId等信息。
 """
-import warnings
 
 import mod.server.extraServerApi as serverApi
 
 
-# region 实体
+# =============
+# 实体
+# =============
+
+
 def add_entity_tick_event_white_list(identifier):
     """
     添加实体类型到EntityTickServerEvent事件的触发白名单。
@@ -21,10 +24,22 @@ def add_entity_tick_event_white_list(identifier):
     return serverApi.AddEntityTickEventWhiteList(identifier)
 
 
-# endregion
+# =============
+# 通用
+# =============
 
 
-# region 通用
+def generate_color(color):
+    """
+    生成颜色字符，用于部分组件的参数设置。
+
+    :param color: str 颜色字符，支持的颜色有 'BLACK','DARK_BLUE','DARK_GREEN','DARK_AQUA','DARK_RED','DARK_PURPLE','GOLD',
+        'GRAY', 'DARK_GRAY','BLUE','GREEN','AQUA','RED','LIGHT_PURPLE','YELLOW','WHITE'
+    :return: str 用于引擎接口的颜色字符
+    """
+    return serverApi.GenerateColor(color)
+
+
 def get_dir_from_rot(rot):
     """
     通过旋转角度获取朝向
@@ -38,8 +53,6 @@ def get_dir_from_rot(rot):
 def get_engine_actor():
     """
     获取所有实体
-
-    1.23 调整 返回结果中去掉当前已经确定要移除的实体
 
     :return: dict 当前地图中的所有实体信息，key：实体id，value：entityDict
         entityDict: {
@@ -100,7 +113,6 @@ def get_minecraft_enum():
 
     :return: minecraftEnum 枚举集合类
     """
-    warnings.warn("冗余接口，可以直接通过import相应的枚举类实现获取枚举值", DeprecationWarning)
     return serverApi.GetMinecraftEnum()
 
 
@@ -113,15 +125,6 @@ def get_player_list():
     :return: list(str) 返回玩家id列表
     """
     return serverApi.GetPlayerList()
-
-
-def is_in_apollo():
-    """
-    返回当前游戏Mod是否运行在Apollo网络服
-
-    :return: bool True是说明当前Mod运行于Apollo网络服环境，False时说明当前Mod运行于租赁服、联机大厅或者单机环境
-    """
-    return serverApi.IsInApollo()
 
 
 def is_in_server():
@@ -244,10 +247,11 @@ def stop_record_packet():
     return serverApi.StopRecordPacket()
 
 
-# endregion
+# =============
+# 系统
+# =============
 
 
-# region 系统
 def get_server_system_cls():
     """
     用于获取服务器system基类。实现新的system时，需要继承该接口返回的类
@@ -282,10 +286,11 @@ def register_system(namespace, system_name, cls_path):
     return serverApi.RegisterSystem(namespace, system_name, cls_path)
 
 
-# endregion
+# =============
+# 组件
+# =============
 
 
-# region 组件
 def get_component_cls():
     """
     用于获取服务器component基类。实现新的component时，需要继承该接口返回的类
@@ -316,4 +321,3 @@ def register_component(namespace, name, cls_path):
     :return: bool 注册成功与否
     """
     return serverApi.RegisterComponent(namespace, name, cls_path)
-# endregion

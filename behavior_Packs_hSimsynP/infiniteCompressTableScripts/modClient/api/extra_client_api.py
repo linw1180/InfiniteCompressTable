@@ -3,12 +3,15 @@
 """
 extraClientApi文件中的一些有用的API接口函数
 """
-import warnings
 
 import mod.client.extraClientApi as clientApi
 
 
-# region AI
+# =============
+# AI
+# =============
+
+
 def get_nav_path(pos, **kwargs):
     # type: (tuple, dict) -> int or list
     """
@@ -69,10 +72,11 @@ def stop_nav():
     clientApi.StopNav()
 
 
-# endregion
+# =============
+# IP
+# =============
 
 
-# region IP
 def get_ip():
     # type: () -> str
     """
@@ -83,10 +87,11 @@ def get_ip():
     return clientApi.GetIP()
 
 
-# endregion
+# =============
+# UI
+# =============
 
 
-# region UI
 def check_can_bind_ui(entity_id):
     # type: (str) -> bool
     """
@@ -206,17 +211,6 @@ def hide_health_gui(is_hide=True):
     return clientApi.HideHealthGui(is_hide)
 
 
-def hide_horse_health_gui(is_hide=True):
-    # type: (bool) -> None
-    """
-    隐藏hud界面的坐骑的血量显示
-
-    :param is_hide: bool 是否隐藏，True为隐藏，False为显示
-    :return: bool 设置是否成功
-    """
-    clientApi.HideHorseHealthGui(is_hide)
-
-
 def hide_hud_gui(is_hide=True):
     # type: (bool) -> None
     """
@@ -287,15 +281,15 @@ def hide_netease_store_gui(is_hide):
     clientApi.HideNeteaseStoreGui(is_hide)
 
 
-def hide_name_tag(is_hide):
+def hide_player_name(is_hide):
     # type: (bool) -> None
     """
-    隐藏场景内所有名字显示，包括玩家名字，生物的自定义名称，物品展示框与命令方块的悬浮文本等
+    隐藏玩家名字
 
     :param is_hide: bool 是否隐藏，True为隐藏，False为显示
     :return:
     """
-    clientApi.HideNameTag(is_hide)
+    clientApi.HidePlayerName(is_hide)
 
 
 def hide_slot_bar_gui(is_hide=True):
@@ -403,39 +397,6 @@ def register_ui(name_space, ui_key, cls_path, ui_name_space):
     return clientApi.RegisterUI(name_space, ui_key, cls_path, ui_name_space)
 
 
-def set_cross_hair(visible=True):
-    # type: (bool) -> None
-    """
-    设置屏幕中心的十字是否显示
-
-    :param visible: bool 是否隐藏，True为显示，False为隐藏
-    :return:
-    """
-    clientApi.SetCrossHair(visible)
-
-
-def set_hud_chat_stack_position(pos):
-    # type: (tuple) -> None
-    """
-    设置HUD界面左上小聊天窗口位置
-
-    :param pos: tuple 该界面的目标坐标，第一项为横轴，第二项为纵轴，(0,0)点在Hud界面左上角，玩家形象下方
-    :return:
-    """
-    clientApi.SetHudChatStackPosition(pos)
-
-
-def set_hud_chat_stack_visible(visible=False):
-    # type: (bool) -> None
-    """
-    设置屏幕中心的十字是否显示
-
-    :param visible: bool 是否隐藏，True为显示，False为隐藏
-    :return:
-    """
-    clientApi.SetHudChatStackVisible(visible)
-
-
 def set_response(response=False):
     # type: (bool) -> None
     """
@@ -447,10 +408,23 @@ def set_response(response=False):
     clientApi.SetResponse(response)
 
 
-# endregion
+# =============
+# 通用
+# =============
 
 
-# region 通用
+def generate_color(color):
+    # type: (str) -> str
+    """
+    生成颜色字符，用于部分组件的参数设置。
+
+    :param color: str 颜色字符，支持的颜色有 'BLACK','DARK_BLUE','DARK_GREEN','DARK_AQUA','DARK_RED','DARK_PURPLE','GOLD',
+        'GRAY','DARK_GRAY','BLUE','GREEN','AQUA','RED','LIGHT_PURPLE','YELLOW','WHITE'
+    :return: str 用于引擎接口的颜色字符
+    """
+    return clientApi.GenerateColor(color)
+
+
 def get_dir_from_rot(rot):
     # type: (tuple) -> tuple
     """
@@ -515,7 +489,6 @@ def get_minecraft_enum():
 
     :return: minecraftEnum 枚举集合类
     """
-    warnings.warn("冗余接口，可以直接通过import相应的枚举类实现获取枚举值", DeprecationWarning)
     return clientApi.GetMinecraftEnum()
 
 
@@ -587,62 +560,10 @@ def get_mini_map_screen_node_cls():
     return clientApi.GetMiniMapScreenNodeCls()
 
 
-def get_mod_config_json():
-    # type: () -> dict
-    """
-    以字典形式返回指定路径的json格式配置文件的内容，文件必须放置在资源包的/modconfigs目录下
+# =============
+# 系统
+# =============
 
-    FIXME 1.23 目前接口文档错误，暂时缺少相关参数
-
-    :return: dict 配置内容的字典，当读取文件失败时返回空字典
-    """
-    warnings.warn("目前接口文档错误，暂时缺少相关参数", FutureWarning)
-    return clientApi.GetModConfigJson()
-
-
-# endregion
-
-
-# region 材质
-def reload_all_materials():
-    # type: () -> bool
-    """
-    重新加载所有材质文件
-
-    :return: bool 是否成功
-    """
-    return clientApi.ReloadAllMaterials()
-
-
-def reload_all_shaders():
-    # type: () -> bool
-    """
-    重新加载所有Shader文件
-
-    若修改到材质，建议使用ReloadAllMaterials方法。
-
-    :return: bool 是否成功
-    """
-    return clientApi.ReloadAllShaders()
-
-
-def reload_one_shader(shader_name):
-    # type: (str) -> bool
-    """
-    重新加载某个Shader文件
-
-    若同时修改了多个Shader，建议使用ReloadAllShaders方法。
-
-    :param shader_name: str shader名称
-    :return: bool 是否成功
-    """
-    return clientApi.ReloadOneShader(shader_name)
-
-
-# endregion
-
-
-# region 系统
 def get_client_system_cls():
     # type: () -> object
     """
@@ -679,10 +600,10 @@ def register_system(name_space, system_name, cls_path):
     return clientApi.RegisterSystem(name_space, system_name, cls_path)
 
 
-# endregion
+# =============
+# 组件
+# =============
 
-
-# region 组件
 def get_component_cls():
     # type: () -> object
     """
@@ -716,4 +637,13 @@ def register_component(name_space, name, cls_path):
     :return: bool 注册成功与否
     """
     return clientApi.RegisterComponent(name_space, name, cls_path)
-# endregion
+
+
+def simulate_touch_with_mouse(touch):
+    """
+    模拟使用鼠标控制UI（PC F11快捷键）
+    :param touch: bool True:进入鼠标模式，False:退出鼠标模式
+    :return: bool 模拟结果
+    """
+    comp = clientApi.GetEngineCompFactory().CreateGame(get_level_id())
+    comp.SimulateTouchWithMouse(touch)

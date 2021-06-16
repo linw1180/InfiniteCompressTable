@@ -41,6 +41,40 @@ def get_attack_target(entity_id):
     action_comp.GetAttackTarget()
 
 
+def set_hurt_by(entity_id, attacker_id):
+    """
+    设置攻击自己的对象实体id
+    
+    :param entity_id: 
+    :param attacker_id: str 攻击自己的对象实体id
+    :return: bool 设置结果
+    """
+    action_comp = serverApi.GetEngineCompFactory().CreateAction(entity_id)
+    action_comp.SetHurtBy(attacker_id)
+
+
+def clear_hurt_by(entity_id):
+    """
+    清除标记攻击自己的对象实体id
+    
+    :param entity_id: 
+    :return: bool 设置结果
+    """
+    action_comp = serverApi.GetEngineCompFactory().CreateAction(entity_id)
+    action_comp.ResetHurtBy()
+
+
+def get_hurt_by(entity_id):
+    """
+    获取攻击自己的对象实体id
+    
+    :param entity_id: 
+    :return: str 攻击自己的对象实体id
+    """
+    action_comp = serverApi.GetEngineCompFactory().CreateAction(entity_id)
+    action_comp.GetHurtBy()
+
+
 def set_mob_knockback(entity_id, **kwargs):
     """
     设置击退的初始速度，需要考虑阻力的影响
@@ -185,63 +219,20 @@ def is_entity_on_fire(entity_id):
     return attr_comp.IsEntityOnFire()
 
 
-def set_entity_on_fire(entity_id, seconds, burn_damage=1):
+def set_entity_on_fire(entity_id, seconds):
     """
     设置实体着火
 
     在水中或者雨中不会生效，着火时间受生物装备、生物的状态影响，不一定等于设置的参数
 
-    1.23 调整 新增参数burn_damage，可设置实体着火状态下每秒扣的血量
-
     1.18 新增 设置实体是否着火
 
     :param entity_id:
     :param seconds: int 着火时间（单位：秒）
-    :param burn_damage: int 着火状态下每秒扣的血量,默认是1
     :return: bool 是否设置成功
     """
     attr_comp = serverApi.GetEngineCompFactory().CreateAttr(entity_id)
-    return attr_comp.SetEntityOnFire(seconds, burn_damage)
-
-
-def set_step_height(player_id, step_height):
-    """
-    设置玩家前进非跳跃状态下能上的最大台阶高度, 默认值为0.5625，1的话表示能上一个台阶
-
-    为了避免因浮点数误差导致错误，设置的时候通常会增加1/16个方块大小，即0.0625。所以此处我们设置2.0625。游戏中默认值是0.5625，即半格高度。
-
-    只对玩家生效，无法修改其它实体该属性
-
-    修改后不影响跳跃逻辑及跳跃高度，并不会因此而跳到更高，因此在某些特定情况下，你可以走上方块但跳不上去。
-
-    :param player_id:
-    :param step_height: float 最大高度，需要大于0
-    :return: bool 设置结果
-    """
-    attr_comp = serverApi.GetEngineCompFactory().CreateAttr(player_id)
-    return attr_comp.SetStepHeight(step_height)
-
-
-def reset_step_height(player_id):
-    """
-    恢复引擎默认玩家前进非跳跃状态下能上的最大台阶高度
-
-    :param player_id:
-    :return: bool 设置结果
-    """
-    attr_comp = serverApi.GetEngineCompFactory().CreateAttr(player_id)
-    return attr_comp.ResetStepHeight()
-
-
-def get_step_height(player_id):
-    """
-    返回玩家前进非跳跃状态下能上的最大台阶高度
-
-    :param player_id:
-    :return: float 台阶高度
-    """
-    attr_comp = serverApi.GetEngineCompFactory().CreateAttr(player_id)
-    return attr_comp.GetStepHeight()
+    return attr_comp.SetEntityOnFire(seconds)
 
 
 def get_entity_aux_value(projectile_id):
@@ -284,8 +275,6 @@ def change_player_dimension(player_id, dimension, pos):
     """
     传送玩家
 
-    该接口在成功切换维度时pos位置为玩家头的位置，即比设定位置低1.62
-
     :param player_id:
     :param dimension: int 维度，0-overWorld; 1-nether; 2-theEnd
     :param pos: tuple(int,int,int) 传送的坐标
@@ -308,9 +297,7 @@ def get_entity_dimension(entity_id):
 
 def change_entity_dimension(entity_id, dimension, pos=None):
     """
-    传送实体
-
-    1.22 调整 **该接口无法对玩家使用**，玩家请使用ChangePlayerDimension
+    传送实体，仅Apollo网络服可用
 
     1.19.0 新增 传送实体，仅Apollo网络服可用
 
@@ -319,6 +306,8 @@ def change_entity_dimension(entity_id, dimension, pos=None):
     :param pos: tuple(int,int,int) 传送的坐标，假如输入None，那么就优先选择目标维度的传送门作为目的地，其次使用维度坐标映射逻辑确定目的地
     :return: bool 是否设置成功
     """
+    warnings.warn("1.20 目前ChangeEntityDimension仅Apollo网络服可用", DeprecationWarning)
+
     dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(entity_id)
     return dimension_comp.ChangeEntityDimension(dimension, pos)
 
@@ -329,9 +318,7 @@ def create_new_dimension(dimension):
 
     要求在初始化mod时调用
 
-    1.22 调整 支持自定义维度的创建
-
-    :param dimension: dimensionId int 维度，0/1/2维度是不需要创建的。创建大于20的维度，需要在dimension_config.json中注册，注意，维度21是不可用的
+    :param dimension: dimensionId int 维度，0/1/2维度是不需要创建的。dimensionId取值范围为[0, 20]
     :return: bool 是否创建成功
     """
     dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(level_id)
@@ -351,22 +338,19 @@ def mirror_dimension(player_id, from_id, to_id):
     return dimension_comp.MirrorDimension(from_id, to_id)
 
 
-def register_entity_aoi_event(player_id, dimension, name, aabb, ignored_entities, entity_type=1):
+def register_entity_aoi_event(player_id, dimension, name, aabb, ignored_entities):
     """
     注册感应区域，有生物进入时和离开时会有消息通知
-
-    1.23 调整 新增entityType期待响应的实体类型的参数
 
     :param player_id:
     :param dimension: int 维度id
     :param name: str 注册的感应区域名
     :param aabb: tuple(float,float,float,float,float,float) 感应区域的坐标范围，依次为minX, minY, minZ, maxX, maxY, maxZ
     :param ignored_entities: list(str) 忽略的实体id列表
-    :param entity_type: EntityType 期望响应的实体类型，不传则响应所有的实体类型[EntityType]枚举
     :return: bool 是否注册成功
     """
     dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(player_id)
-    return dimension_comp.RegisterEntityAOIEvent(dimension, name, aabb, ignored_entities, entity_type)
+    return dimension_comp.RegisterEntityAOIEvent(dimension, name, aabb, ignored_entities)
 
 
 def remove_entity_aoi_event(player_id, dimension, name):
@@ -380,103 +364,6 @@ def remove_entity_aoi_event(player_id, dimension, name):
     """
     dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(player_id)
     return dimension_comp.UnRegisterEntityAOIEvent(dimension, name)
-
-
-def set_use_local_time(dimension, value=True):
-    """
-    让某个维度拥有自己的局部时间规则，开启后该维度可以拥有与其他维度不同的时间与是否昼夜更替的规则
-
-    * 启用局部时间规则时，默认继承全局的时间与昼夜更替规则
-    * 时间规则对原版的下界与末地无效，这两个维度永远为黑夜且没有昼夜更替
-    * 建议统一在游戏启动时调用
-    * 在pc开发包下，可以在聊天栏键入dmtime on或dmtime off来测试开启与关闭当前维度的局部时间
-
-    :param dimension: int 维度id
-    :param value: bool 是否开启局部时间规则
-    :return: bool: 是否设置成功
-    """
-    dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(level_id)
-    return dimension_comp.SetUseLocalTime(dimension, value)
-
-
-def get_use_local_time(dimension):
-    """
-    获取某个维度是否设置了使用局部时间规则
-
-    :param dimension: int 维度id
-    :return: bool 是否使用局部时间规则
-    """
-    dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(level_id)
-    return dimension_comp.GetUseLocalTime(dimension)
-
-
-def set_local_time(dimension, time):
-    """
-    设置使用局部时间规则维度的时间
-
-    * 游戏有天数的概念，使用时需要进行考虑。您也可以直接使用SetLocalTimeOfDay设置一天内所在的时间而不用计算天数。
-    * 只有使用局部时间规则维度才能设置
-
-    :param dimension: int 维度id
-    :param time: int 时间，单位为帧数。表示该存档从新建起经过的时间，而非当前游戏天内的时间。mc中一个游戏天相当于现实的20分钟，即24000帧
-    :return: bool: 是否设置成功
-    """
-    dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(level_id)
-    return dimension_comp.SetLocalTime(dimension, time)
-
-
-def set_local_time_of_day(dimension, time):
-    """
-    设置使用局部时间规则维度在一天内所在的时间
-
-    具体的逻辑与time指令相同，若timeOfDay比当前时间晚，则设置到当天的timeOfDay；若timeOfDay比当前时间早，则设置到次日的timeOfDay
-
-    在pc开发包下，可以在聊天栏键入dmtime time <int:帧数>来测试设置当前维度的局部时间
-
-    :param dimension: int 维度id
-    :param time: int 时间，单位为帧数，表示游戏天内的时间，范围为0到24000。mc中一个游戏天相当于现实的20分钟，即24000帧
-    :return: bool: 是否设置成功
-    """
-    dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(level_id)
-    return dimension_comp.SetLocalTimeOfDay(dimension, time)
-
-
-def get_local_time(dimension):
-    """
-    获取维度的时间
-
-    维度使用局部时间规则时，返回局部时间；没有使用时返回全局时间
-
-    :param dimension: int 维度id
-    :return: int 时间，单位为帧数，表示该存档从新建起经过的时间，而非当前游戏天内的时间。mc中一个游戏天相当于现实的20分钟，即24000帧
-    """
-    dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(level_id)
-    return dimension_comp.GetLocalTime(dimension)
-
-
-def set_local_do_day_night_cycle(dimension, value=False):
-    """
-    设置使用局部时间规则的维度是否打开昼夜更替
-
-    :param dimension: int 维度id
-    :param value: bool 是否打开昼夜更替
-    :return: bool: 是否设置成功
-    """
-    dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(level_id)
-    return dimension_comp.SetLocalDoDayNightCycle(dimension, value)
-
-
-def get_local_do_day_night_cycle(dimension):
-    """
-    获取维度是否打开昼夜更替
-    
-    维度使用局部时间规则时，返回维度自身的昼夜更替规则；没有使用时返回全局的昼夜更替规则
-
-    :param dimension: int 维度id
-    :return: bool 是否打开昼夜更替
-    """
-    dimension_comp = serverApi.GetEngineCompFactory().CreateDimension(level_id)
-    return dimension_comp.GetLocalDoDayNightCycle(dimension)
 
 
 def add_effect_to_entity(entity_id, effect_name, duration, amplifier=0, show_particles=False):
@@ -552,32 +439,17 @@ def get_entity_type_str(entity_id):
     return engine_type_comp.GetEngineTypeStr()
 
 
-def set_extra_data(save_id, key, value, auto_save=True):
+def set_extra_data(save_id, key, value):
     """
-    用于设置实体的自定义数据或者世界的自定义数据，数据以键值对的形式保存。
-
-    设置实体数据时使用对应实体id创建组件，设置世界数据时使用levelId创建组件
-
-    1.23 调整 新增参数autoSave，可设置是否自动保存数据，默认为True
+    用于设置实体的自定义数据或者世界的自定义数据，数据以键值对的形式保存。设置实体数据时使用对应实体id创建组件，设置世界数据时使用levelId创建组件
 
     :param save_id: 实体id或level_id
     :param key: str 自定义key
     :param value: any key对应的值，支持python基本数据类型
-    :param auto_save: 默认自动保存，默认为True，如果批量设置数据，请将该参数设置为False，同时在设置数据完毕时调用SaveExtraData接口
     :return: bool 设置结果
     """
     ex_data_comp = serverApi.GetEngineCompFactory().CreateExtraData(save_id)
-    return ex_data_comp.SetExtraData(key, value, auto_save)
-
-
-def save_extra_data(save_id):
-    """
-    用于保存实体的自定义数据或者世界的自定义数据
-
-    :return: bool 设置结果
-    """
-    ex_data_comp = serverApi.GetEngineCompFactory().CreateExtraData(save_id)
-    return ex_data_comp.SaveExtraData()
+    return ex_data_comp.SetExtraData(key, value)
 
 
 def remove_extra_data(save_id, key):
@@ -719,11 +591,7 @@ def set_entity_pos(entity_id, pos):
     设置实体位置
     
     实体行为与使用tp命令一致
-
-    对于所有类型的实体都是设置脚底位置，与SetFootPos等价
-
-    在床上时调用该接口会返回False
-
+    
     1.20 修改 修改行为与使用tp命令一致
     
     :param entity_id: 
@@ -807,22 +675,6 @@ def get_entity_rot(entity_id):
     """
     rot_comp = serverApi.GetEngineCompFactory().CreateRot(entity_id)
     return rot_comp.GetRot()
-
-
-def set_entity_look_at_pos(entity_id, target_pos, min_time, max_time, reject):
-    # type: (str, tuple[float,float,float], float, float, bool) -> bool
-    """
-    设置非玩家的实体看向某个位置
-
-    :param entity_id:
-    :param target_pos: 要看向的目标位置
-    :param min_time: 凝视行为最短维持时间，单位为秒
-    :param max_time: 凝视行为最长维持时间，单位为秒，最大值为60，实际行为维持时间将在minTime和maxTime之间取随机值
-    :param reject: 在进行凝视行为时，是否禁止触发其他行为，True为禁止其他行为，False为允许其他行为（此时凝视行为可能表现不明显）
-    :return: 是否设置成功，True为成功，False为失败
-    """
-    rot_comp = serverApi.GetEngineCompFactory().CreateRot(entity_id)
-    return rot_comp.SetEntityLookAtPos(target_pos, min_time, max_time, reject)
 
 
 def get_unit_bubble_air_supply():
@@ -1131,8 +983,6 @@ def set_ride_entity(entity_id, mounts_id):
 
     当被控制的entity有多个位置时且开发者想要添加多个玩家时，第一个被添加的玩家会被引擎默认设置为控制者
 
-    FIXME SetPlayerRideEntity与此区别?
-
     1.18 新增 新增实体骑乘生物接口
 
     :param entity_id: str 被骑乘生物id
@@ -1140,7 +990,7 @@ def set_ride_entity(entity_id, mounts_id):
     :return:
     """
     ride_comp = serverApi.GetEngineCompFactory().CreateRide(entity_id)
-    return ride_comp.SetRiderRideEntity(entity_id, mounts_id)
+    return ride_comp.SetPlayerRideEntity(entity_id, mounts_id)
 
 
 def get_owner_id(entity_id):
@@ -1164,26 +1014,3 @@ def set_owner_id(player_id, tamed_id):
     """
     tame_comp = serverApi.GetEngineCompFactory().CreateTame(tamed_id)
     return tame_comp.SetEntityTamed(player_id, tamed_id)
-
-
-def set_entity_owner(entity_id, owner_id):
-    """
-    设置实体的属主
-
-    :param entity_id:
-    :param owner_id: str 属主实体id，为None时设置实体的属主为空
-    :return: bool 设置结果
-    """
-    actor_owner_comp = serverApi.GetEngineCompFactory().CreateActorOwner(entity_id)
-    return actor_owner_comp.SetEntityOwner(owner_id)
-
-
-def get_entity_owner(entity_id):
-    """
-    获取实体的属主
-
-    :param entity_id:
-    :return: str 实体属主id
-    """
-    actor_owner_comp = serverApi.GetEngineCompFactory().CreateActorOwner(entity_id)
-    return actor_owner_comp.GetEntityOwner()

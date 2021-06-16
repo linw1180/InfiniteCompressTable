@@ -16,7 +16,7 @@ def get_platform():
 
     :return: int 0：Window；1：IOS；2：Android；-1：其他
     """
-    return clientApi.GetPlatform()
+    return extra_client_api.get_system(ModName, ModClientSystemName).GetPlatform()
 
 
 def broadcast_event(event_name, event_data):
@@ -41,6 +41,17 @@ def create_event_data():
     """
     warnings.warn("1.20 目前CreateEventData暂时没有特殊功能，可以使用{}代替", DeprecationWarning)
     return extra_client_api.get_system(ModName, ModClientSystemName).CreateEventData()
+
+
+def define_event(event_name):
+    # type: (str) -> None
+    """
+    定义自定义事件
+
+    :param event_name: str 事件名
+    :return:
+    """
+    extra_client_api.get_system(ModName, ModClientSystemName).DefineEvent(event_name)
 
 
 def listen_for_event(namespace, system_name, event_name, instance, func, priority=0):
@@ -69,6 +80,17 @@ def notify_to_server(event_name, event_data):
     :return:
     """
     extra_client_api.get_system(ModName, ModClientSystemName).NotifyToServer(event_name, event_data)
+
+
+def un_define_event(event_name):
+    # type: (str) -> None
+    """
+    取消自定义事件
+
+    :param event_name: str 事件名
+    :return:
+    """
+    extra_client_api.get_system(ModName, ModClientSystemName).UnDefineEvent(event_name)
 
 
 def un_listen_all_events():

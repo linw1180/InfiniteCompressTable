@@ -1,35 +1,41 @@
 # -*- coding: utf-8 -*-
-import heapq
 import math
-import random
 
 from mod.common.utils.mcmath import Vector3
 
-
-def get_probability_results(value):
-    # type: (float) -> bool
-    return random.random() < value
+from ..api import *
 
 
-def a_res(samples, n):
+def entity_filter(entity_id):
     """
-    加权随机采样A-Res
+    判断entity是否非指定类别
 
-    :param samples: [(item, weight), ...]
-    :param n: 个数
-    :return:
+    :param entity_id:
+    :return: True：生物；反之False
     """
-    heap = []  # [(ki, item), ...]
-    for sample, weight in samples:
-        ui = random.uniform(0, 1)
-        ki = ui ** (1.0 / weight) if weight else 0
+    entity_type = get_entity_type(entity_id)
+    # print "========== Entity Type {} ==========".format(entity_type)
+    if entity_type & get_minecraft_enum().EntityType.Mob != get_minecraft_enum().EntityType.Mob:
+        return False
+    if get_attr_max_value(entity_id, get_minecraft_enum().AttrType.HEALTH) <= 0:
+        return False
 
-        if len(heap) < n:
-            heapq.heappush(heap, (ki, sample))
-        elif ki > heap[0][0]:
-            heapq.heappushpop(heap, (ki, sample))
+    return True
 
-    return [item[1] for item in heap]
+
+def get_nearest_entity(center_entity, targets):
+    center_pos = get_entity_pos(center_entity)
+    min_distance = 9999
+    target_id = None
+    for entity_id in targets:
+        entity_pos = get_entity_pos(entity_id)
+        sqr_distance = Vector3(tuple(center_pos[i] - entity_pos[i] for i in xrange(3))).LengthSquared()
+
+        if sqr_distance < min_distance:
+            target_id = entity_id
+            min_distance = sqr_distance
+
+    return target_id
 
 
 def get_vertical_vector(vec):
@@ -133,66 +139,76 @@ def sector_intersects(center, direction, angle, point):
     return True
 
 
-def get_new_pos(pos, rot, offset, ignore_y=True):
+def get_entity_in_rectangle_area(center_entity, length=3, width=3):
     """
-    通过旋转值和相对坐标确定新位置
-    :param tuple pos:
-    :param tuple rot:
-    :param tuple offset:
-    :param bool ignore_y:
-    :rtype: tuple
+    获取矩形范围内的实体
+
+    :param center_entity:
+    :param length:
+    :param width: 宽度
     :return:
     """
-    # 转轴公式
-    import math
-    rad = math.radians(rot[1])
-    rad_y = math.radians(rot[0])
-    sin = math.sin(rad)
-    cos = math.cos(rad)
-    cos_y = math.cos(rad_y)
-    dz = offset[0] * sin + offset[2] * cos
-    dx = offset[0] * cos - offset[2] * sin
-    dy = offset[1] if ignore_y else offset[1] * cos_y
-    return pos[0] + dx, pos[1] + dy, pos[2] + dz
+    possible_targets = get_entities_around(center_entity, max(length, width))
+    if center_entity in possible_targets:
+        possible_targets.remove(center_entity)
+    possible_targets = filter(entity_filter, possible_targets)
+
+    if not possible_targets:
+        return []
+
+    center_pos = get_entity_foot_pos(center_entity)
+    dir_vector = tuple(i * length for i in get_dir_from_rot(get_entity_rot(center_entity)))
+
+    # 获取命中斜矩形区域的四个角（仅x，z坐标有效）
+    rect_corners = get_rect_four_corner(center_pos, dir_vector, width)
+
+    if not rect_corners:
+        return []
+
+    for index, entity_id in enumerate(possible_targets):
+        entity_pos = get_entity_pos(entity_id)
+        if not matrix_intersects(rect_corners, entity_pos):
+            possible_targets.remove(entity_id)
+
+    return possible_targets
 
 
-def rot_from_dir(direction):
-    """
-    根据方向向量获取对应的朝向角度
-    :param direction: 单位向量
-    :return: 上下俯仰角度和左右旋转角度
-    """
-    x, y, z = direction
-    return math.degrees(math.asin(y)), math.degrees(math.atan2(z, x)) - 90
+def get_entity_in_sector_area(center_entity, radius=3, angle=90):
+    possible_targets = get_entities_around(center_entity, radius)
+    if center_entity in possible_targets:
+        possible_targets.remove(center_entity)
+    possible_targets = filter(entity_filter, possible_targets)
+
+    if not possible_targets:
+        return []
+
+    dir_vector = tuple(i * radius for i in get_dir_from_rot(get_entity_rot(center_entity)))
+    if not dir_vector:
+        return []
+
+    center_pos = get_entity_foot_pos(center_entity)
+
+    for index, entity_id in enumerate(possible_targets):
+        entity_pos = get_entity_pos(entity_id)
+        if not sector_intersects(center_pos, dir_vector, angle, entity_pos):
+            possible_targets.remove(entity_id)
+
+    return possible_targets
 
 
-def tuple_subtract(vec_a, vec_b):
-    """
-    用于对两个多维的tuple相减
-    :param tuple vec_a:
-    :param tuple vec_b:
-    :return:
-    """
-    return tuple([v1 - v2 for v1, v2 in zip(vec_a, vec_b)])
+def get_entity_in_circular_area(center_entity, radius=3):
+    possible_targets = get_entities_around(center_entity, radius)
+    if center_entity in possible_targets:
+        possible_targets.remove(center_entity)
+    possible_targets = filter(entity_filter, possible_targets)
 
+    if not possible_targets:
+        return []
+    center_pos = get_entity_foot_pos(center_entity)
 
-def normalize_3d(x, y, z, parm=1.0):
-    length = pow(x * x + y * y + z * z, 0.5)
-    if length <= 0:
-        return 0, 0, 0
-    return x * parm / length, y * parm / length, z * parm / length
+    for index, entity_id in enumerate(possible_targets):
+        entity_pos = get_entity_pos(entity_id)
+        if not cylinder_intersects(center_pos, radius, entity_pos):
+            possible_targets.remove(entity_id)
 
-
-def cal_pos_distance(pos1, pos2, no_y=False):
-    """
-    计算两点之间的距离
-    :param pos1:
-    :param pos2:
-    :param no_y: 是否忽视高度
-    :return:
-    """
-    delta_x = pos1[0] - pos2[0]
-    delta_y = 0 if no_y else pos1[1] - pos2[1]
-    delta_z = pos1[2] - pos2[2]
-    dis = delta_x ** 2 + delta_z ** 2 + delta_y ** 2
-    return math.sqrt(dis)
+    return possible_targets

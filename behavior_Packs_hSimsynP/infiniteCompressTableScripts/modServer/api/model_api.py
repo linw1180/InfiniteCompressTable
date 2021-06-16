@@ -50,20 +50,6 @@ def set_model_texture(entity_id, texture):
     return model_comp.SetModelTexture(texture)
 
 
-def set_common_hurt_color(entity_id, show=False):
-    """
-    设置挂接骨骼模型的实体是否显示通用的受伤变红效果（广播）
-
-    引擎默认打开该选项，需要改变受伤效果可以关闭之后再进行定制
-
-    :param entity_id:
-    :param show: bool 是否显示
-    :return: bool 设置结果
-    """
-    model_comp = serverApi.GetEngineCompFactory().CreateModel(entity_id)
-    return model_comp.ShowCommonHurtColor(show)
-
-
 def set_entity_scale(entity_id, scale):
     """
     设置实体的放缩比例大小，设置比例过大会导致游戏卡顿，建议控制在20倍以内

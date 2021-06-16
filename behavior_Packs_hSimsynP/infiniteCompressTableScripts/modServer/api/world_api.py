@@ -8,11 +8,11 @@ level_id = serverApi.GetLevelId()
 def add_chunk_pos_white_list(dimension, pos):
     """
     为某区块加载完成、准备卸载事件添加监听
-
+    
     方块坐标(x, y, z)所在的区块坐标为(math.floor(x / 16), math.floor(z / 16))
-
+    
     1.19 新增 为客户端区块加载完成、准备卸载事件添加监听
-
+    
     :param dimension: int 区块所在维度
     :param pos: tuple(int,int) 指定区块的坐标
     :return: bool 是否添加成功
@@ -64,29 +64,6 @@ def check_chunk_state(dimension, pos):
     """
     chunk_source_comp = serverApi.GetEngineCompFactory().CreateChunkSource(level_id)
     return chunk_source_comp.CheckChunkState(dimension, pos)
-
-
-def get_loaded_chunks(dimension):
-    """
-    获取指定维度当前已经加载完毕的全部区块的坐标列表
-
-    :param dimension: int 维度
-    :return: None或list(tuple(int,int)) 区块坐标的列表（区块坐标为(x,z)），当指定维度不存在或尚未创建时，返回None
-    """
-    chunk_source_comp = serverApi.GetEngineCompFactory().CreateChunkSource(level_id)
-    return chunk_source_comp.GetLoadedChunks(dimension)
-
-
-def get_chunk_entities(dimension, pos):
-    """
-    获取指定位置的区块中，全部的实体和玩家的ID列表
-
-    :param dimension: int 维度
-    :param pos: tuple(int,int,int) 指定位置的坐标
-    :return: None或list(str) 实体和玩家的ID的列表，当指定位置的区块不存在或尚未加载时，返回None
-    """
-    chunk_source_comp = serverApi.GetEngineCompFactory().CreateChunkSource(level_id)
-    return chunk_source_comp.GetChunkEntites(dimension, pos)
 
 
 def add_ticking_area(key, dimension, min_pos, max_pos):
@@ -263,7 +240,7 @@ def locate_structure_feature(feature_type, dimension, pos):
     return feature_comp.LocateStructureFeature(feature_type, dimension, pos)
 
 
-def locate_netease_feature_rule(rule_name, dimension, pos):
+def locate_netease_feature(feature_name, dimension, pos):
     """
     与[/locate指令](https://minecraft-zh.gamepedia.com/%E5%91%BD%E4%BB%A4/locate)相似，用于定位由[网易自定义特征]放置的结构
 
@@ -273,18 +250,16 @@ def locate_netease_feature_rule(rule_name, dimension, pos):
     * 若在feature rules中"conditions"内的"minecraft:biome_filter"中填写了判断维度以外的过滤规则，将有概率无法定位到距离最近的特征。建议开发者在"distribution"的"iterations"中使用query.is_biome代替
     * 定位原理是根据放置条件寻找可能放置结构的位置，因此有可能会定位到在PlaceNeteaseStructureFeatureEvent事件中被取消生成的结构。开发者应注意甄别，尽量避免对可能在PlaceNeteaseStructureFeatureEvent事件中被取消放置的结构调用定位函数
 
-    1.23 调整 由LocateNeteaseFeature改为定位速度更快的接口LocateNeteaseFeatureRule，参数由feature_name调整为rule_name
-
-    :param rule_name: str 特征规则名称，形式为namespace:featureRuleIdentifier，如custombiomes:overworld_pumpkins_feature_rule
+    :param feature_name: str 结构名称，形式为namespace:featureName，如test:pumpkins
     :param dimension: int 结构所在维度，要求该维度已加载
     :param pos: tuple(int,int,int) 以该位置为中心来查找最近的结构
-    :return: tuple(float,float,float)或None 最近的满足网易自定义特征规则分布条件的坐标，定位失败则返回None
+    :return: tuple(float,float,float)或None 最近的结构位置，定位失败则返回None
     """
     feature_comp = serverApi.GetEngineCompFactory().CreateFeature(level_id)
-    return feature_comp.LocateNeteaseFeatureRule(rule_name, dimension, pos)
+    return feature_comp.LocateNeteaseFeature(feature_name, dimension, pos)
 
 
-def place_structure(pos, structure_name, dimension=0):
+def place_structure(player_id, pos, structure_name, dimension=-1):
     """
     放置结构
 
@@ -292,17 +267,19 @@ def place_structure(pos, structure_name, dimension=0):
 
     该接口是同步执行的，请勿在一帧内放置大量结构，会造成游戏卡顿
 
-    1.23 调整 废弃player_id参数
-
     1.20 调整 增加参数dimensionId，默认为-1，传入非负值时不依赖playerId，可在对应维度的常加载区块放置结构
 
+    :param player_id: str或None 放置该结构的玩家id/None
     :param pos: tuple(float,float,float) 放置结构的位置
     :param structure_name: str 结构名称
     :param dimension: int 希望放置结构的维度，默认为-1，传入非负值时不依赖playerId，playerId可传入None，可在对应维度的常加载区块放置结构
     :return: bool 是否放置成功，True为放置成功，False为放置失败
     """
-    game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
-    game_comp.PlaceStructure(None, pos, structure_name, dimension)
+    if dimension > -1:
+        game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
+        return game_comp.PlaceStructure(None, pos, structure_name, dimension)
+    game_comp = serverApi.GetEngineCompFactory().CreateBlockInfo(player_id)
+    return game_comp.PlaceStructure(player_id, pos, structure_name)
 
 
 def add_timer(delay, func, *args, **kwargs):
@@ -396,9 +373,7 @@ def set_disable_vine_block_spread(disable=True):
 
 def set_disable_liquid_flow(disable=True):
     """
-    禁止/允许地图中的流体流动
-
-    禁止流动后的流体，在重新允许流动之后，不会立刻向四周流动，直到受到方块更新（如相邻的方块发生改变）
+    禁止/允许地图中的流体流动；备注：在禁止流体流动后方式的水/岩浆，重新允许流动之后立刻不会触发向四周流动的逻辑，直到再次触发流动判定为止（如周围的方块发生了变化）
 
     1.18 新增 禁止/允许地图中的流体流动
 
@@ -445,10 +420,10 @@ def set_disable_containers(disable=True):
 def set_disable_drop_item(disable=True):
     """
     设置禁止丢弃物品
-
+    
     * 开启开关后，玩家死亡会所有物品消失；如需保证物品不掉落，可以配合/gamerule keepInventory true 使用
     * 创造模式下物品依然能丢弃。
-
+    
     :param disable: bool 是否禁止丢弃物品
     :return: bool 设置是否成功
     """
@@ -509,21 +484,45 @@ def get_entities_around_by_type(entity_id, radius, entity_type):
     return game_comp.GetEntitiesAroundByType(entity_id, radius, entity_type)
 
 
-def get_entities_in_square_area(start_pos, end_pos, dimension=0):
+def get_entities_in_square_area(entity_id, start_pos, end_pos, dimension=-1):
     """
     获取区域内的entity列表
 
-    1.23 调整 废弃player_id参数
-
     1.20 调整 新增dimensionId参数，默认为-1，传入非负值时不依赖entityId，可获取对应维度的常加载区块内的实体列表
 
+    :param entity_id: str或None 某个entityId/None
     :param start_pos: tuple(int,int,int) 初始位置
     :param end_pos: tuple(int,int,int) 结束位置
-    :param dimension: int 区域所在维度，默认值为0，传入非负值时不依赖entityId，entityId可传入None，可获取对应维度的常加载区块内的实体列表
+    :param dimension: int 区域所在维度，默认值为-1，传入非负值时不依赖entityId，entityId可传入None，可获取对应维度的常加载区块内的实体列表
     :return: list(str) 返回entityId的list
     """
+    if dimension > -1:
+        game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
+        return game_comp.GetEntitiesInSquareArea(None, start_pos, end_pos, dimension)
+    game_comp = serverApi.GetEngineCompFactory().CreateGame(entity_id)
+    return game_comp.GetEntitiesInSquareArea(entity_id, start_pos, end_pos)
+
+
+def get_entity_identifier(entity_id):
+    """
+    获取实体entity的identifier标识名称
+
+    :param entity_id: str 要获取的目标的entityId
+    :return: str identifier标识符,例如:"minecraft:item"
+    """
     game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
-    return game_comp.GetEntitiesInSquareArea(None, start_pos, end_pos, dimension)
+    return game_comp.GetEntityIdentifier(entity_id)
+
+
+def get_item_entity_item_identifier(entity_id):
+    """
+    获取ItemEntity的Item的identifier标识名称
+
+    :param entity_id: str 要获取的目标的entityId
+    :return: str identifier标识符,例如:"minecraft:apple"
+    """
+    game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
+    return game_comp.GetItemEntityItemIdentifier(entity_id)
 
 
 def get_game_difficulty():
@@ -672,20 +671,6 @@ def get_player_game_type(player_id):
     return game_comp.GetPlayerGameType(player_id)
 
 
-def get_player_spawn_pos():
-    """
-    获取世界出生点坐标
-
-    返回的坐标不一定是精确的出生点坐标，也不一定是安全的出生点，玩家出生时会在该坐标附近随机选取一个满足出生条件的坐标。
-
-    未使用set_world_spawn指令设置过出生点位置时，返回坐标的y轴是32767
-
-    :return: tuple(int,int,int) 出生点坐标
-    """
-    game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
-    return game_comp.GetSpawnPosition()
-
-
 def get_level_gravity():
     """
     获取重力因子
@@ -696,17 +681,17 @@ def get_level_gravity():
     return game_comp.GetLevelGravity()
 
 
-def set_level_gravity(gravity):
+def set_level_gravity(data):
     """
     设置重力因子
 
     生物可单独设置重力因子，当生物的重力因子非0时则该生物单独有自己的重力因子，具体参见实体重力组件
 
-    :param gravity: float 重力因子
+    :param data: float 重力因子
     :return: bool 设置是否成功
     """
     game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
-    return game_comp.SetLevelGravity(gravity)
+    return game_comp.GetLevelGravity(data)
 
 
 def kill_entity(entity_id):
@@ -835,12 +820,6 @@ def upgrade_map_dimension_version(dimension, version):
     """
     提升指定地图维度的版本号，版本号不符的维度，地图存档信息将被废弃
 
-    使用后存档的地图版本均会同步提升至最新版本，假如希望使用此接口清理指定维度的地图存档，需要在保证该维度区块都没有被加载时调用。
-
-    对于本地游戏来说，由于引擎加载时机比mod早，因此可能出现区块加载比mod加载更早的情况，此时在初始化时使用该接口升级当前维度会出现失效的情况，建议本地游戏中先将玩家移出需要升级的维度，等区块卸载完成（可以使用CheckChunkState判断玩家离开前位置）后再升级该维度。
-
-    对于网络服游戏来说，因为服务端加载mod总是比玩家登录要早，因此可以在mod初始化时调用该接口升级指定维度。
-
     1.19 新增 提升指定地图维度的版本号，版本号不符的维度，地图存档信息将被废弃
 
     :param dimension: int 维度的数字ID，0代表主世界
@@ -849,45 +828,6 @@ def upgrade_map_dimension_version(dimension, version):
     """
     game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
     return game_comp.UpgradeMapDimensionVersion(dimension, version)
-
-
-def is_entity_alive(entity_id):
-    """
-    判断生物实体是否存活或非生物实体是否存在
-
-    注意，如果检测的实体所在的区块被卸载，则该接口返回False。因此，需要注意实体所在的区块是否被加载。
-
-    :param entity_id: str 实体id
-    :return: bool false表示生物实体已死亡或非生物实体已销毁，true表示生物实体存活或非生物实体存在
-    """
-    game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
-    return game_comp.IsEntityAlive(entity_id)
-
-
-def set_merge_spawn_item_radius(radius):
-    """
-    设置新生成的物品是否合堆
-
-    该接口主要应用于优化会产生大量掉落物品的场景，使用此方式可大大减少掉落物品实体数量，大幅提升性能。
-
-    手中丢弃的物品不受上述合堆逻辑影响。
-
-    :param radius: int 合堆检测半径，范围可设置为0到5，初始为0。若为0代表不合堆，若大于0，则地图中生成一个物品时，会检测这个半径内是否有相同物品，若有且未达到堆叠上限，则不生成新物品，而是使地图上该物品的数量增加
-    :return: bool success True为设置成功，False为设置失败
-    """
-    game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
-    return game_comp.SetMergeSpawnItemRadius(radius)
-
-
-def get_chinese(lang_str):
-    """
-    获取langStr对应的中文，可参考PC开发包中resource_pack/texts/zh_CN.lang
-
-    :param lang_str: str 传入的langStr
-    :return: str langStr对应的中文，若找不到对应的中文，则会返回langStr本身
-    """
-    game_comp = serverApi.GetEngineCompFactory().CreateGame(level_id)
-    return game_comp.GetChinese(lang_str)
 
 
 def set_time(time):
@@ -899,17 +839,6 @@ def set_time(time):
     """
     time_comp = serverApi.GetEngineCompFactory().CreateTime(level_id)
     return time_comp.SetTime(time)
-
-
-def set_time_of_day(time):
-    """
-    设置当前世界在一天内所在的时间
-
-    :param time:
-    :return:
-    """
-    time_comp = serverApi.GetEngineCompFactory().CreateTime(level_id)
-    return time_comp.SetTimeOfDay(time)
 
 
 def get_time():
