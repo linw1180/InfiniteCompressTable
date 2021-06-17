@@ -121,26 +121,29 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.AddTouchEventHandler(item_btn_path, self.on_item_btn_touch, {"isSwallow": True})
 
     def update_bag_ui(self, args):
-        # 更新背包UI
-        for i in xrange(36):
-            item_btn_path = self.item_btn_path_prefix + str(i + 1)
-            item_dict = args[i]
-            self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
-            self.slot_to_path[i] = item_btn_path
+        pass
 
-        self.refresh_bag_ui()
+    #     # 更新背包UI
+    #     for i in xrange(36):
+    #         item_btn_path = self.item_btn_path_prefix + str(i + 1)
+    #         item_dict = args[i]
+    #         self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
+    #         self.slot_to_path[i] = item_btn_path
+    #
+    #     self.refresh_bag_ui()
 
     def refresh_bag_ui(self):
-        bag_grid_list = self.validate_scroll_grid_path()
-        if not bag_grid_list:
-            return
-
-        for item_btn in bag_grid_list:
-            item_btn_path = self.inv_grid_path + "/" + item_btn
-            if item_btn_path not in self.bag_info:
-                continue
-            self.set_slot_item_btn(item_btn_path, self.bag_info[item_btn_path]['item'])
-            self.register_item_btn_event(item_btn_path)
+        pass
+        # bag_grid_list = self.validate_scroll_grid_path()
+        # if not bag_grid_list:
+        #     return
+        #
+        # for item_btn in bag_grid_list:
+        #     item_btn_path = self.inv_grid_path + "/" + item_btn
+        #     if item_btn_path not in self.bag_info:
+        #         continue
+        #     self.set_slot_item_btn(item_btn_path, self.bag_info[item_btn_path]['item'])
+        #     self.register_item_btn_event(item_btn_path)
 
     def validate_scroll_grid_path(self):
         bag_grid_list = self.GetChildrenName(self.inv_grid_path)
@@ -581,7 +584,6 @@ class BaseCustomContainerUIScreen(BaseUI):
 
     @func_log
     def show_ui(self, **kwargs):
-        print "================== base show_ui ==================="
         if self.last_selected_path:
             self.SetVisible(self.last_selected_path + "/img_selected", False)
             self.last_selected_path = None

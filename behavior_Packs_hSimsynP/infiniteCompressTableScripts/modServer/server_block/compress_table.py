@@ -25,8 +25,7 @@ class CompressTable(Block):
             # "equipped_items": player.equipped_items.items,
             # "eu": block_entity_data['eu'],
         })
-
-    # add_timer(0.1, cls.update_inventory_ui, player_id, block_name)
+        add_timer(0.1, cls.update_inventory_ui, player_id, block_name)
 
     @staticmethod
     def update_inventory_ui(player_id, block_name):

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import copy
 
 from mod.common.minecraftEnum import TouchEvent
 
@@ -19,8 +18,14 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
         self.paper_doll = '/main_panel/paper_doll'
         self.btn_exit = '/bg_panel/bg/btn_exit'  # 套用
         self.hide_tips_path = '/bg_panel/hide_tips_message'
-        self.inv_grid_path = '/main_panel/inv_grid'  # 套用
+        # self.inv_grid_path = '/main_panel/inv_grid'  # 套用
+        # self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
+
+        self.inv_grid_path = '/main_panel/inv_grid0'  # 上3x9=27格
+        self.inv_grid_path_quick = '/main_panel/inv_grid1'  # 下1x9=9格 快捷栏
         self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
+        self.item_btn_path_prefix_quick = self.inv_grid_path_quick + "/item_btn"  # 快捷栏按钮路径
+
         # self.moying_panle_path = "/main_panel/grid0"
 
         # self.search_panel_grid_path = "/main_panel/panel0/grid1"
@@ -45,81 +50,33 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
 
     @func_log
     def show_ui(self, **kwargs):
-        print "================= infinite compress table's show_ui ======================"
         super(InfiniteCompressTableUIScreen, self).show_ui(**kwargs)
 
-    # def refresh_moying_bag_ui(self):
-    #     bag_grid_list = self.validate_moying_bag_grid_path()
-    #     if not bag_grid_list:
-    #         return
-    #     for item_btn in bag_grid_list:
-    #         item_btn_path = self.moying_panle_path + "/" + item_btn
-    #         if item_btn_path not in self.bag_info:
-    #             continue
-    #         self.set_slot_item_btn(item_btn_path, self.bag_info[item_btn_path]['item'])
-    #         self.register_item_btn_event(item_btn_path)
-
-    def refresh_search_bag_ui(self):
-        bag_grid_list = self.GetChildrenName(self.search_panel_grid_path)
-        if not bag_grid_list:
-            return
-        for item_btn in bag_grid_list:
-            item_btn_path = self.search_panel_grid_path + "/" + item_btn
-            if item_btn_path not in self.bag_info:
-                continue
-            self.set_slot_item_btn(item_btn_path, self.bag_info[item_btn_path]['item'])
-            self.register_item_btn_event(item_btn_path)
-
-    # def validate_moying_bag_grid_path(self):
-    #     bag_grid_list = self.GetChildrenName(self.moying_panle_path)
-    #     return bag_grid_list
-
-    # def update_custom_container_ui(self, bag_items):
-    #     # 当前保存在玩家身上的数据
-    #     for i, item in enumerate(bag_items):
-    #         btn = 'item_btn{slot}'.format(slot=i + 1)
-    #         btn_path = '{prefix}/{btn}'.format(prefix=self.moying_panle_path, btn=btn)
-    #         self.bag_info[btn_path] = {"slot": btn, "item": item}
-    #         self.slot_to_path[btn] = btn_path
-    #         self.set_slot_item_btn(btn_path, item)
-    #         self.register_item_btn_event(btn_path)
-
-    # def update_moying_bag_ui(self, data, state):
-    #     for i, item in enumerate(data):
-    #         btn = 'item_btn{slot}'.format(slot=i + 1)
-    #         btn_path = '{prefix}/{btn}'.format(prefix=self.moying_panle_path, btn=btn)
-    #         self.bag_info[btn_path] = {"slot": btn, "item": item}
-    #         self.slot_to_path[btn] = btn_path
-    #     if not state:
-    #         add_timer(0.7, self.refresh_moying_bag_ui)
-    #     else:
-    #         self.refresh_moying_bag_ui()
-
-    def update_search_bag_ui(self, data, args):
-        self.search_data = copy.deepcopy(args)
-        for i, item in enumerate(data):
-            btn = 'item_btn{slot}'.format(slot=i + 1)
-            btn_path = '{prefix}/{btn}'.format(prefix=self.search_panel_grid_path, btn=btn)
-            self.bag_info[btn_path] = {"slot": btn, "item": item}
-            self.slot_to_path[btn] = btn_path
-        self.refresh_search_bag_ui()
+    def tick(self):
+        super(InfiniteCompressTableUIScreen, self).tick()
 
     @staticmethod
     def close(args):
         if args['TouchEvent'] == TouchEvent.TouchUp:
             get_ui_manager().pop_ui()
 
-    def update_bag_ui(self, args, state):
-        # 更新背包UI
-        for i in xrange(36):
-            item_btn_path = self.item_btn_path_prefix + str(i + 1)
+    @func_log
+    def update_bag_ui(self, args):
+
+        for i in xrange(9):
             item_dict = args[i]
+            item_btn_path = self.item_btn_path_prefix_quick + str(i + 1)
+            # bag_info = [{item_btn_path: {"slot": i, "item": item_dict}}, {item_btn_path: {"slot": i, "item": item_dict}}]
+            self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
+            # slot_to_path = [0: item_btn_path, 1: item_btn_path]
+            self.slot_to_path[i] = item_btn_path
+        for i in range(9, 36):
+            item_dict = args[i]
+            item_btn_path = self.item_btn_path_prefix + str(i + 1 - 9)
             self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
             self.slot_to_path[i] = item_btn_path
-        if not state:
-            add_timer(0.6, self.refresh_bag_ui)
-        else:
-            self.refresh_bag_ui()
+
+        # self.refresh_bag_ui()
 
     def refresh_bag_ui(self):
         bag_grid_list = self.validate_scroll_grid_path()
@@ -294,3 +251,59 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
                 self.AddTouchEventHandler(self.mGridPath + "/button0" + str(index + 1), self.to_page,
                                           {"isSwallow": True})
                 self.already_register_item_btn.append(item)
+
+    # def refresh_moying_bag_ui(self):
+    #     bag_grid_list = self.validate_moying_bag_grid_path()
+    #     if not bag_grid_list:
+    #         return
+    #     for item_btn in bag_grid_list:
+    #         item_btn_path = self.moying_panle_path + "/" + item_btn
+    #         if item_btn_path not in self.bag_info:
+    #             continue
+    #         self.set_slot_item_btn(item_btn_path, self.bag_info[item_btn_path]['item'])
+    #         self.register_item_btn_event(item_btn_path)
+
+    # def refresh_search_bag_ui(self):
+    #     bag_grid_list = self.GetChildrenName(self.search_panel_grid_path)
+    #     if not bag_grid_list:
+    #         return
+    #     for item_btn in bag_grid_list:
+    #         item_btn_path = self.search_panel_grid_path + "/" + item_btn
+    #         if item_btn_path not in self.bag_info:
+    #             continue
+    #         self.set_slot_item_btn(item_btn_path, self.bag_info[item_btn_path]['item'])
+    #         self.register_item_btn_event(item_btn_path)
+
+    # def validate_moying_bag_grid_path(self):
+    #     bag_grid_list = self.GetChildrenName(self.moying_panle_path)
+    #     return bag_grid_list
+
+    # def update_custom_container_ui(self, bag_items):
+    #     # 当前保存在玩家身上的数据
+    #     for i, item in enumerate(bag_items):
+    #         btn = 'item_btn{slot}'.format(slot=i + 1)
+    #         btn_path = '{prefix}/{btn}'.format(prefix=self.moying_panle_path, btn=btn)
+    #         self.bag_info[btn_path] = {"slot": btn, "item": item}
+    #         self.slot_to_path[btn] = btn_path
+    #         self.set_slot_item_btn(btn_path, item)
+    #         self.register_item_btn_event(btn_path)
+
+    # def update_moying_bag_ui(self, data, state):
+    #     for i, item in enumerate(data):
+    #         btn = 'item_btn{slot}'.format(slot=i + 1)
+    #         btn_path = '{prefix}/{btn}'.format(prefix=self.moying_panle_path, btn=btn)
+    #         self.bag_info[btn_path] = {"slot": btn, "item": item}
+    #         self.slot_to_path[btn] = btn_path
+    #     if not state:
+    #         add_timer(0.7, self.refresh_moying_bag_ui)
+    #     else:
+    #         self.refresh_moying_bag_ui()
+
+    # def update_search_bag_ui(self, data, args):
+    #     self.search_data = copy.deepcopy(args)
+    #     for i, item in enumerate(data):
+    #         btn = 'item_btn{slot}'.format(slot=i + 1)
+    #         btn_path = '{prefix}/{btn}'.format(prefix=self.search_panel_grid_path, btn=btn)
+    #         self.bag_info[btn_path] = {"slot": btn, "item": item}
+    #         self.slot_to_path[btn] = btn_path
+    #     self.refresh_search_bag_ui()

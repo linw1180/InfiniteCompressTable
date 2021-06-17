@@ -21,10 +21,10 @@ def update_block_ui(args):
     if not ui_node:
         return
 
+    # 更新背包UI
+    if 'inventory' in args:
+        ui_node.update_bag_ui(args['inventory'])
 
-# 更新背包UI
-# if 'inventory' in args:
-# 	ui_node.update_bag_ui(args['inventory'])
 
 # if 'inventory' in args:
 # 	ui_node.update_bag_ui(args['inventory'], args['state'])
