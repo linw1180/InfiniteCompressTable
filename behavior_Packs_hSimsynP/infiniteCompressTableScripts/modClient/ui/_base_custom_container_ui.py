@@ -12,6 +12,7 @@ from ...modCommon.utils.log_utils import func_log
 
 ViewBinder = clientApi.GetViewBinderCls()
 
+
 def get_durability_ratio(item_dict):
     """
     计算耐久度比例
@@ -49,6 +50,12 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
 
         self.custom_container_panel_path = self.main_panel_path + "/armor_panel"  # 自定义槽位面板，用于控制飞行动画位置
+
+        # 新增的自定义按鈕
+        self.from_item_button_path = "/from_item_button"
+        self.to_item_button_path = "/to_item_button"
+        # self.btn_exit_path = "/bg_panel/bg/btn_exit"
+
         # endregion
 
         # region 管理背包数据及各个槽位对应的路径
@@ -90,6 +97,23 @@ class BaseCustomContainerUIScreen(BaseUI):
     @func_log
     def on_ui_create(self):
         print '============================ on_ui_create =============================='
+
+        self.AddTouchEventHandler(self.from_item_button_path, self.on_from_item_button_touch, {"isSwallow": True})
+        self.AddTouchEventHandler(self.to_item_button_path, self.on_to_item_button_touch, {"isSwallow": True})
+        # self.AddTouchEventHandler(self.btn_exit_path, self.on_btn_exit_touch, {"isSwallow": True})
+
+        # text = self.GetBaseUIControl(self.page_text_path).asTextEditBox()
+        # self.pages = "1"
+        # text.SetEditText(self.pages)
+
+    def on_from_item_button_touch(self, args):
+        print '----------------- on_from_item_button_touch --------------------- args =', args
+
+    def on_to_item_button_touch(self, args):
+        print '----------------- on_to_item_button_touch --------------------- args =', args
+
+    # def on_btn_exit_touch(self, args):
+    #     print '----------------- on_btn_exit_touch --------------------- args =', args
 
     def register_item_btn_event(self, item_btn_path):
         if item_btn_path in self.already_register_item_btn:
@@ -537,23 +561,37 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.container_state_machine.add_edge(NodeId.TouchProgressiveSelectComplete,
                                               NodeId.TouchProgressiveSelectCancel, self.can_un_selected)
 
+    # def show_ui(self, **kwargs):
+    #     # if not self.mIsHide:
+    #     #     return
+    #     # clientApi.HideHudGUI(True)
+    #     # clientApi.SetInputMode(1)
+    #     # clientApi.SetResponse(False)
+    #     if self.last_selected_path:
+    #         self.GetBaseUIControl(self.last_selected_path + "/img_selected").SetVisible(False)
+    #         self.last_selected_path = None
+    #     # self.InitCustomContainerUI(args)
+    #     self.block_pos = kwargs["pos"]
+    #     self.dimension = kwargs["dimension"]
+    #     self.block_name = kwargs["block_name"]
+    #     self.container_state_machine.reset_to_default()
+    #     # self.SetVisible(self.main_panel_path, True)
+    #     # self.mIsHide = False
+    #     super(BaseCustomContainerUIScreen, self).show_ui()
+
+    @func_log
     def show_ui(self, **kwargs):
-        # if not self.mIsHide:
-        #     return
-        # clientApi.HideHudGUI(True)
-        # clientApi.SetInputMode(1)
-        # clientApi.SetResponse(False)
+        print "================== base show_ui ==================="
         if self.last_selected_path:
-            self.GetBaseUIControl(self.last_selected_path + "/img_selected").SetVisible(False)
+            self.SetVisible(self.last_selected_path + "/img_selected", False)
             self.last_selected_path = None
-        # self.InitCustomContainerUI(args)
-        self.block_pos = kwargs["pos"]
         self.dimension = kwargs["dimension"]
         self.block_name = kwargs["block_name"]
+        if kwargs.get("pos"):
+            self.block_pos = kwargs["pos"]
+        else:
+            self.block_pos = None
         self.container_state_machine.reset_to_default()
-        # self.SetVisible(self.main_panel_path, True)
-        # self.mIsHide = False
-        super(BaseCustomContainerUIScreen, self).show_ui()
 
     def tick(self):
         """
