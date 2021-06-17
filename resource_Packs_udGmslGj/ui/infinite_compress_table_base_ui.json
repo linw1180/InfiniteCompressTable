@@ -173,7 +173,7 @@
     "min_size": [0, 0],
     "offset": ["0.0%+-1.0px", "0.0%+1.0px"],
     "propagate_alpha": false,
-    "size": [14, 15],
+    "size": [17, 16],
     "visible": true
   },
   "button0@common.button": {
@@ -401,7 +401,7 @@
     "layer": 1,
     "max_size": [0, 0],
     "min_size": [0, 0],
-    "offset": [-37.0, -54.0],
+    "offset": [-36.0, -53.0],
     "propagate_alpha": false,
     "size": [18, 18],
     "visible": true
@@ -843,7 +843,7 @@
     "nine_slice_right": 0,
     "nine_slice_top": 0,
     "nineslice_size": [0, 0, 0, 0],
-    "offset": [4.50, -28.0],
+    "offset": [4.50, -26.0],
     "propagate_alpha": false,
     "size": [115, 20],
     "texture": "",
@@ -917,7 +917,7 @@
     "nine_slice_right": 0,
     "nine_slice_top": 0,
     "nineslice_size": [0, 0, 0, 0],
-    "offset": [1.0, -54.0],
+    "offset": [1.0, -53.0],
     "propagate_alpha": false,
     "size": [14, 14],
     "texture": "textures/ui/jian_tou",
@@ -1014,7 +1014,7 @@
     "layer": 1,
     "max_size": [0, 0],
     "min_size": [0, 0],
-    "offset": [36.0, -55.0],
+    "offset": [36.0, -53.0],
     "propagate_alpha": false,
     "size": [18, 18],
     "visible": true

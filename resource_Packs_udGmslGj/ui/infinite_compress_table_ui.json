@@ -48,7 +48,7 @@
     "type": "grid",
     "visible": true
   },
-  "inv_grid0": {
+  "inv_grid": {
     "alpha": 1.0,
     "anchor_from": "center",
     "anchor_to": "center",
@@ -56,37 +56,16 @@
     "clips_children": false,
     "collection_name": "test_grid",
     "enabled": true,
-    "grid_dimensions": [9.0, 3.0],
+    "grid_dimensions": [9.0, 4.0],
     "grid_item_template": "infinite_compress_table_base_ui.item_btn",
     "grid_rescaling_type": "none",
     "layer": 1,
     "max_size": [0, 0],
     "maximum_grid_items": 0,
     "min_size": [0, 0],
-    "offset": [0.0, 15.0],
+    "offset": [-1.0, 26.50],
     "propagate_alpha": true,
-    "size": [162, 54],
-    "type": "grid",
-    "visible": true
-  },
-  "inv_grid1": {
-    "alpha": 1.0,
-    "anchor_from": "center",
-    "anchor_to": "center",
-    "clip_offset": [0, 0],
-    "clips_children": false,
-    "collection_name": "test_grid",
-    "enabled": true,
-    "grid_dimensions": [9.0, 1.0],
-    "grid_item_template": "infinite_compress_table_base_ui.item_btn",
-    "grid_rescaling_type": "none",
-    "layer": 1,
-    "max_size": [0, 0],
-    "maximum_grid_items": 0,
-    "min_size": [0, 0],
-    "offset": [0.0, 54.0],
-    "propagate_alpha": true,
-    "size": [162, 18],
+    "size": [162, 71],
     "type": "grid",
     "visible": true
   },
@@ -128,10 +107,7 @@
     "clips_children": false,
     "controls": [
       {
-        "inv_grid0@infinite_compress_table_ui.inv_grid0": {}
-      },
-      {
-        "inv_grid1@infinite_compress_table_ui.inv_grid1": {}
+        "inv_grid@infinite_compress_table_ui.inv_grid": {}
       },
       {
         "fly_img_template@infinite_compress_table_ui.fly_img": {}

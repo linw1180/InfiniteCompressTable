@@ -18,13 +18,8 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
         self.paper_doll = '/main_panel/paper_doll'
         self.btn_exit = '/bg_panel/bg/btn_exit'  # 套用
         self.hide_tips_path = '/bg_panel/hide_tips_message'
-        # self.inv_grid_path = '/main_panel/inv_grid'  # 套用
-        # self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
-
-        self.inv_grid_path = '/main_panel/inv_grid0'  # 上3x9=27格
-        self.inv_grid_path_quick = '/main_panel/inv_grid1'  # 下1x9=9格 快捷栏
+        self.inv_grid_path = '/main_panel/inv_grid'  # 套用
         self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
-        self.item_btn_path_prefix_quick = self.inv_grid_path_quick + "/item_btn"  # 快捷栏按钮路径
 
         # self.moying_panle_path = "/main_panel/grid0"
 
@@ -63,22 +58,17 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
     @func_log
     def update_bag_ui(self, args):
 
-        for i in xrange(9):
+        # 更新背包UI
+        for i in xrange(36):
             item_dict = args[i]
-            item_btn_path = self.item_btn_path_prefix_quick + str(i + 1)
-            # bag_info = [{item_btn_path: {"slot": i, "item": item_dict}}, {item_btn_path: {"slot": i, "item": item_dict}}]
-            self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
-            # slot_to_path = [0: item_btn_path, 1: item_btn_path]
-            self.slot_to_path[i] = item_btn_path
-        for i in range(9, 36):
-            item_dict = args[i]
-            item_btn_path = self.item_btn_path_prefix + str(i + 1 - 9)
+            item_btn_path = self.item_btn_path_prefix + str(i + 1)
             self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
             self.slot_to_path[i] = item_btn_path
 
-        # self.refresh_bag_ui()
+        self.refresh_bag_ui()
 
     def refresh_bag_ui(self):
+        # 获取网格的子节点list（网格子节点其实就是按钮，此处获取的就是按钮名list）
         bag_grid_list = self.validate_scroll_grid_path()
         if not bag_grid_list:
             return
@@ -87,6 +77,7 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
             item_btn_path = self.inv_grid_path + "/" + item_btn
             if item_btn_path not in self.bag_info:
                 continue
+            # 设置目标槽位Item渲染
             self.set_slot_item_btn(item_btn_path, self.bag_info[item_btn_path]['item'])
             self.register_item_btn_event(item_btn_path)
 
