@@ -86,29 +86,10 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
         return bag_grid_list
 
     def handle_swap(self, button_path):
-        if not self.last_selected_path:
-            print "there is no last selected button, swap failed!!!"
-            return
-        self.pages = self.GetBaseUIControl(self.page_text_path).asTextEditBox().GetEditText()
-        if not self.pages:
-            self.pages = "1"
+        super(InfiniteCompressTableUIScreen, self).handle_swap(button_path)
 
-        if self.pages.isdigit():
-            notify_to_server('OnItemSwapClientEvent', {
-                "block_name": self.block_name,
-                "from_slot": self.get_slot_by_path(self.last_selected_path),
-                "to_slot": self.get_slot_by_path(button_path),
-                "player_id": local_player,
-                "from_item": self.get_item_by_path(self.last_selected_path),
-                "to_item": self.get_item_by_path(button_path),
-                "block_pos": self.block_pos,
-                "dimension": self.dimension,
-                "take_percent": self.take_percent,
-                "flag": self.last_selected_path,
-                'search_data': self.search_data,
-                "pages": int(self.pages)
-            })
-            self.container_state_machine.reset_to_default()
+    def swap_item(self, args):
+        return super(InfiniteCompressTableUIScreen, self).swap_item(args)
 
     # @ViewBinder.binding(ViewBinder.BF_EditChanged | ViewBinder.BF_EditFinished)
     # def message_text_edit_box0(self, args):

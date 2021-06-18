@@ -59,3 +59,21 @@
 #                 30: '/main_panel/inv_grid/item_btn31', 31: '/main_panel/inv_grid/item_btn32',
 #                 32: '/main_panel/inv_grid/item_btn33', 33: '/main_panel/inv_grid/item_btn34',
 #                 34: '/main_panel/inv_grid/item_btn35', 35: '/main_panel/inv_grid/item_btn36'}
+
+# args = {'from_slot': 15, 'block_name': 'xl:block_compress_table',
+#         'from_item': {'itemId': -746, 'count': 64, 'isDiggerItem': False, 'enchantData': [], 'durability': 0,
+#                       'customTips': '', 'extraId': '', 'modId': '', 'userData': None, 'modItemId': '',
+#                       'itemName': 'xl:block_compress_table', 'auxValue': 0, 'showInHand': True},
+#         'to_item': {'itemId': -745, 'count': 64, 'isDiggerItem': False, 'enchantData': [], 'durability': 0,
+#                     'customTips': '', 'extraId': '', 'modId': '', 'userData': None, 'modItemId': '',
+#                     'itemName': 'xl:block_limited_compress_table', 'auxValue': 0, 'showInHand': True},
+#         'to_slot': 16, 'player_id': '-38654705663', 'block_pos': (3046, 68, 16), 'take_percent': 1, 'dimension': 0}
+#
+# args = {'from_slot': 12, 'block_name': 'xl:block_compress_table',
+#         'from_item': {'itemId': -746, 'count': 64, 'isDiggerItem': False, 'enchantData': [], 'durability': 0,
+#                       'customTips': '', 'extraId': '', 'modId': '', 'userData': None, 'modItemId': '',
+#                       'itemName': 'xl:block_compress_table', 'auxValue': 0, 'showInHand': True},
+#         'to_item': {'itemId': 58, 'count': 64, 'isDiggerItem': False, 'enchantData': [], 'durability': 0,
+#                     'customTips': '', 'extraId': '', 'modId': '', 'userData': None, 'modItemId': '',
+#                     'itemName': 'minecraft:crafting_table', 'auxValue': 0, 'showInHand': True},
+#         'to_slot': 3, 'player_id': '-38654705663', 'block_pos': (3046, 68, 16), 'take_percent': 1, 'dimension': 0}

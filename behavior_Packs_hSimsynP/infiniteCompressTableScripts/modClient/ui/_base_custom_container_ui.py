@@ -46,7 +46,8 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.fly_img_template_path = self.main_panel_path + "/fly_img_template"  # 飞行动画模板
 
         # 背包网格相关路径
-        self.inv_grid_path = self.main_panel_path + "/scroll_inv/scroll_touch/scroll_view/panel/background_and_viewport/scrolling_view_port/scrolling_content"
+        # self.inv_grid_path = self.main_panel_path + "/scroll_inv/scroll_touch/scroll_view/panel/background_and_viewport/scrolling_view_port/scrolling_content"
+        self.inv_grid_path = self.main_panel_path + '/inv_grid'
         self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
 
         self.custom_container_panel_path = self.main_panel_path + "/armor_panel"  # 自定义槽位面板，用于控制飞行动画位置
@@ -54,7 +55,6 @@ class BaseCustomContainerUIScreen(BaseUI):
         # 新增的自定义按鈕
         self.from_item_button_path = "/from_item_button"
         self.to_item_button_path = "/to_item_button"
-        # self.btn_exit_path = "/bg_panel/bg/btn_exit"
 
         # endregion
 
@@ -100,7 +100,6 @@ class BaseCustomContainerUIScreen(BaseUI):
 
         self.AddTouchEventHandler(self.from_item_button_path, self.on_from_item_button_touch, {"isSwallow": True})
         self.AddTouchEventHandler(self.to_item_button_path, self.on_to_item_button_touch, {"isSwallow": True})
-        # self.AddTouchEventHandler(self.btn_exit_path, self.on_btn_exit_touch, {"isSwallow": True})
 
         # text = self.GetBaseUIControl(self.page_text_path).asTextEditBox()
         # self.pages = "1"
@@ -112,9 +111,6 @@ class BaseCustomContainerUIScreen(BaseUI):
     def on_to_item_button_touch(self, args):
         print '----------------- on_to_item_button_touch --------------------- args =', args
 
-    # def on_btn_exit_touch(self, args):
-    #     print '----------------- on_btn_exit_touch --------------------- args =', args
-
     def register_item_btn_event(self, item_btn_path):
         if item_btn_path in self.already_register_item_btn:
             return
@@ -123,33 +119,33 @@ class BaseCustomContainerUIScreen(BaseUI):
     def update_bag_ui(self, args):
         pass
 
-    #     # 更新背包UI
-    #     for i in xrange(36):
-    #         item_btn_path = self.item_btn_path_prefix + str(i + 1)
-    #         item_dict = args[i]
-    #         self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
-    #         self.slot_to_path[i] = item_btn_path
-    #
-    #     self.refresh_bag_ui()
-
     def refresh_bag_ui(self):
         pass
-        # bag_grid_list = self.validate_scroll_grid_path()
-        # if not bag_grid_list:
-        #     return
-        #
-        # for item_btn in bag_grid_list:
-        #     item_btn_path = self.inv_grid_path + "/" + item_btn
-        #     if item_btn_path not in self.bag_info:
-        #         continue
-        #     self.set_slot_item_btn(item_btn_path, self.bag_info[item_btn_path]['item'])
-        #     self.register_item_btn_event(item_btn_path)
+
+    @func_log
+    def handle_swap(self, button_path):
+        if not self.last_selected_path:
+            print "there is no last selected button, swap failed!!!"
+            return
+        notify_to_server('OnItemSwapClientEvent', {
+            "block_name": self.block_name,
+            "from_slot": self.get_slot_by_path(self.last_selected_path),
+            "to_slot": self.get_slot_by_path(button_path),
+            "player_id": local_player,
+            "from_item": self.get_item_by_path(self.last_selected_path),
+            "to_item": self.get_item_by_path(button_path),
+            "block_pos": self.block_pos,
+            "dimension": self.dimension,
+            "take_percent": self.take_percent
+        })
+        self.container_state_machine.reset_to_default()
 
     def validate_scroll_grid_path(self):
         bag_grid_list = self.GetChildrenName(self.inv_grid_path)
         if not bag_grid_list:
             # PC版touch模式和鼠标模式scroll的路径不一致。
-            self.inv_grid_path = self.main_panel_path + "/scroll_inv/scroll_mouse/scroll_view/stack_panel/background_and_viewport/scrolling_view_port/scrolling_content"
+            # self.inv_grid_path = self.main_panel_path + "/scroll_inv/scroll_mouse/scroll_view/stack_panel/background_and_viewport/scrolling_view_port/scrolling_content"
+            self.inv_grid_path = self.main_panel_path + '/inv_grid'
             self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
             bag_grid_list = self.GetChildrenName(self.inv_grid_path)
             if not bag_grid_list:
@@ -235,23 +231,6 @@ class BaseCustomContainerUIScreen(BaseUI):
     def handle_un_selected(self, button_path):
         self.container_state_machine.reset_to_default()
 
-    def handle_swap(self, button_path):
-        if not self.last_selected_path:
-            print "there is no last selected button, swap failed!!!"
-            return
-        notify_to_server('OnItemSwapClientEvent', {
-            "block_name": self.block_name,
-            "from_slot": self.get_slot_by_path(self.last_selected_path),
-            "to_slot": self.get_slot_by_path(button_path),
-            "player_id": local_player,
-            "from_item": self.get_item_by_path(self.last_selected_path),
-            "to_item": self.get_item_by_path(button_path),
-            "block_pos": self.block_pos,
-            "dimension": self.dimension,
-            "take_percent": self.take_percent
-        })
-        self.container_state_machine.reset_to_default()
-
     def handle_drop_all(self, button_path):
         if not self.last_selected_path:
             print "there is no last selected button, drop failed!!!"
@@ -321,7 +300,8 @@ class BaseCustomContainerUIScreen(BaseUI):
 
     def get_bag_item_position(self, item_path):
         """计算背包控件相对于main_panel的位置，用于飞行动画"""
-        pos1 = self.GetBaseUIControl(self.main_panel_path + "/scroll_inv").GetPosition()
+        # pos1 = self.GetBaseUIControl(self.main_panel_path + "/scroll_inv").GetPosition()
+        pos1 = self.GetBaseUIControl(self.main_panel_path + '/inv_grid').GetPosition()
         pos2 = self.GetBaseUIControl(item_path).GetPosition()
         return pos1[0] + pos2[0] + 2, pos1[1] + pos2[1] + 2
 
@@ -358,6 +338,7 @@ class BaseCustomContainerUIScreen(BaseUI):
     #     self.set_item_at_path(drop_path, None)
 
     # 交换物品
+    @func_log
     def swap_item(self, args):
         from_slot = args["from_slot"]
         to_slot = args["to_slot"]

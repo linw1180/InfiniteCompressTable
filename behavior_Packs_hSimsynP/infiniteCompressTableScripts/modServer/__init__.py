@@ -4,7 +4,7 @@ import mod.server.extraServerApi as serverApi
 
 from infiniteCompressTableScripts.modCommon import ModName, ModClientSystemName
 from infiniteCompressTableScripts.modServer.api import un_listen_all_events
-from infiniteCompressTableScripts.modServer.server_system import block_server
+from infiniteCompressTableScripts.modServer.server_system import block_server, item_server
 
 ServerSystem = serverApi.GetServerSystemCls()
 SystemName = serverApi.GetEngineSystemName()
@@ -29,7 +29,7 @@ class InfiniteCompressTableServerSystem(ServerSystem):
 
         # 注册客户端事件监听
         for event_name, instance, function in [
-
+            ["OnItemSwapClientEvent", item_server, item_server.on_item_swap],
         ]:
             self.ListenForEvent(ModName, ModClientSystemName, event_name, instance, function)
 

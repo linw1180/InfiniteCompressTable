@@ -29,7 +29,7 @@ class InfiniteCompressTableClientSystem(ClientSystem):
         for event_name, instance, function in [
             ['OpenBlockUI', ui_client, ui_client.open_block_ui],
             ['UpdateBlockUI', ui_client, ui_client.update_block_ui],
-            # ['OnItemSwapServerEvent', ui_client, ui_client.on_item_swap],
+            ['OnItemSwapServerEvent', ui_client, ui_client.on_item_swap],
         ]:
             self.ListenForEvent(ModName, ModServerSystemName, event_name, instance, function)
 
