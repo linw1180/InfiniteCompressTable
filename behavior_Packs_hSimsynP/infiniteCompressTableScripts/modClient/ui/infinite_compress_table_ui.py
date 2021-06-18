@@ -60,8 +60,8 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
 
         # 更新背包UI
         for i in xrange(36):
-            item_dict = args[i]
             item_btn_path = self.item_btn_path_prefix + str(i + 1)
+            item_dict = args[i]
             self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
             self.slot_to_path[i] = item_btn_path
 

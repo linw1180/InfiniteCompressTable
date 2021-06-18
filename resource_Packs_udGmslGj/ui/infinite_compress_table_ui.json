@@ -107,6 +107,9 @@
     "clips_children": false,
     "controls": [
       {
+        "progressive_bar@infinite_compress_table_base_ui.progress_bar": {}
+      },
+      {
         "inv_grid@infinite_compress_table_ui.inv_grid": {}
       },
       {

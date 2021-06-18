@@ -601,6 +601,14 @@
       },
       {
         "item_renderer@infinite_compress_table_base_ui.item_renderer": {}
+      },
+      {
+        "durability_bar@infinite_compress_table_base_ui.progress_bar": {
+          "$bar_mask_size": ["100.0%+0.0px", "50.0%+0.0px"],
+          "$progress_bar_size": [18.0, 2.0],
+          "anchor_from": "bottom_middle",
+          "anchor_to": "bottom_middle"
+        }
       }
     ],
     "draggable": "not_draggable",
@@ -863,6 +871,38 @@
     "nineslice_size": "$nineslice_size",
     "texture": "$pressed_texture",
     "type": "image"
+  },
+  "progress_bar": {
+    "$progress_bar_offset|default": [0, 0],
+    "$progress_bar_size|default": [18, 3],
+    "anchor_from": "center",
+    "anchor_to": "center",
+    "color": [0.3, 0.3, 0.3],
+    "controls": [
+      {
+        "bar_mask": {
+          "$bar_mask_size|default": ["100.0%+0.0px", "100.0%+0.0px"],
+          "anchor_from": "center",
+          "anchor_to": "center",
+          "clip_direction": "left",
+          "color": [0, 1, 0],
+          "layer": 1,
+          "nineslice_size": 1,
+          "offset": [0, 0],
+          "size": "$bar_mask_size",
+          "texture": "textures/ui/white_bg",
+          "type": "image",
+          "visible": true
+        }
+      }
+    ],
+    "layer": 10,
+    "nineslice_size": 1,
+    "offset": "$progress_bar_offset",
+    "size": "$progress_bar_size",
+    "texture": "textures/ui/white_bg",
+    "type": "image",
+    "visible": false
   },
   "scroll_background_image": {
     "is_new_nine_slice": "$is_background_nine_slice",
