@@ -77,3 +77,11 @@
 #                     'customTips': '', 'extraId': '', 'modId': '', 'userData': None, 'modItemId': '',
 #                     'itemName': 'minecraft:crafting_table', 'auxValue': 0, 'showInHand': True},
 #         'to_slot': 3, 'player_id': '-38654705663', 'block_pos': (3046, 68, 16), 'take_percent': 1, 'dimension': 0}
+
+# from_button
+args = {'PrevButtonDownID': '3540390879', 'TouchPosX': 182.0, 'TouchPosY': 95.66667175292969, 'ButtonState': 0,
+        'ButtonPath': '/from_item_button', '#collection_name': '', 'TouchEvent': 0, '#collection_index': -1}
+
+args = [{'itemId': -749, 'count': 18, 'modItemId': '', 'enchantData': [], 'durability': 0, 'customTips': '',
+         'extraId': '', 'modId': '', 'userData': None, 'isDiggerItem': False, 'itemName': 'xl:infinite_ender_chest',
+         'auxValue': 0, 'showInHand': True}]

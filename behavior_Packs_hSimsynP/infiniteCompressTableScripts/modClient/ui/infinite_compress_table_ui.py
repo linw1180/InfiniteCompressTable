@@ -46,6 +46,8 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
     @func_log
     def show_ui(self, **kwargs):
         super(InfiniteCompressTableUIScreen, self).show_ui(**kwargs)
+        # 初始化自定义按钮数据
+        # self.update_custom_container_ui()
 
     def tick(self):
         super(InfiniteCompressTableUIScreen, self).tick()
@@ -57,32 +59,51 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
 
     @func_log
     def update_bag_ui(self, args):
-
+        print '================= update_bag_ui ======================= args =', args
         # 更新背包UI
         for i in xrange(36):
+            # 按钮绝对路径 '/main_panel/inv_grid/item_btn31'
             item_btn_path = self.item_btn_path_prefix + str(i + 1)
+            # 物品信息字典，槽位无物品则为 None
             item_dict = args[i]
             self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
             self.slot_to_path[i] = item_btn_path
-
         self.refresh_bag_ui()
+
+    @func_log
+    def update_custom_container_ui(self):
+
+        # 初始化两个自定义按钮数据
+
+        # "/from_item_button"
+        from_item_btn_path = self.from_item_button_path
+        # bag_info = ["/from_item_button": {"slot": 'input_slot', "item": None}]
+        self.bag_info[from_item_btn_path] = {"slot": 'input_slot', "item": None}
+        self.slot_to_path[36] = from_item_btn_path
+
+        # "/to_item_button"
+        to_item_btn_path = self.to_item_button_path
+        # bag_info = ["/to_item_button": {"slot": 'output_slot', "item": None}]
+        self.bag_info[to_item_btn_path] = {"slot": 'output_slot', "item": None}
+        self.slot_to_path[37] = to_item_btn_path
+
+        print '------------------------------------------------------------------ bag_info =', self.bag_info
+        print '------------------------------------------------------------------ slot_to_path =', self.slot_to_path
+        # for equipment_type, item_list in equipped_items.iteritems():
+        #     for slot, item_dict in enumerate(item_list):
+        #         btn = 'btn_{type}_{slot}'.format(type=equipment_type, slot=slot)
+        #         btn_path = '{prefix}/{btn}'.format(prefix=self.custom_container_panel_path, btn=btn)
+        #         self.bag_info[btn_path] = {"slot": btn, "item": item_dict}
+        #         self.slot_to_path[btn] = btn_path
+        #         self.set_slot_item_btn(btn_path, item_dict)
 
     def on_from_item_button_touch(self, args):
         if args['TouchEvent'] == TouchEvent.TouchUp:
-            print '---------- on_from_item_button_touch up -------------'
+            print '---------- on_from_item_button_touch up ------------- args =', args
 
     def on_to_item_button_touch(self, args):
         if args['TouchEvent'] == TouchEvent.TouchUp:
-            print '---------- on_to_item_button_touch up -------------'
-
-    def update_custom_container_ui(self, equipped_items):
-        for equipment_type, item_list in equipped_items.iteritems():
-            for slot, item_dict in enumerate(item_list):
-                btn = 'btn_{type}_{slot}'.format(type=equipment_type, slot=slot)
-                btn_path = '{prefix}/{btn}'.format(prefix=self.custom_container_panel_path, btn=btn)
-                self.bag_info[btn_path] = {"slot": btn, "item": item_dict}
-                self.slot_to_path[btn] = btn_path
-                self.set_slot_item_btn(btn_path, item_dict)
+            print '---------- on_to_item_button_touch up ------------- args =', args
 
     def refresh_bag_ui(self):
         # 获取网格的子节点list（网格子节点其实就是按钮，此处获取的就是按钮名list）
@@ -102,9 +123,11 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
         bag_grid_list = self.GetChildrenName(self.inv_grid_path)
         return bag_grid_list
 
+    # 先执行
     def handle_swap(self, button_path):
         super(InfiniteCompressTableUIScreen, self).handle_swap(button_path)
 
+    # 后执行
     def swap_item(self, args):
         return super(InfiniteCompressTableUIScreen, self).swap_item(args)
 

@@ -97,13 +97,8 @@ class BaseCustomContainerUIScreen(BaseUI):
     @func_log
     def on_ui_create(self):
         print '============================ on_ui_create =============================='
-
         self.AddTouchEventHandler(self.from_item_button_path, self.on_from_item_button_touch, {"isSwallow": True})
         self.AddTouchEventHandler(self.to_item_button_path, self.on_to_item_button_touch, {"isSwallow": True})
-
-        # text = self.GetBaseUIControl(self.page_text_path).asTextEditBox()
-        # self.pages = "1"
-        # text.SetEditText(self.pages)
 
     def on_from_item_button_touch(self, args):
         pass
@@ -124,6 +119,8 @@ class BaseCustomContainerUIScreen(BaseUI):
 
     @func_log
     def handle_swap(self, button_path):
+        print '-------------------------------------- button_path =', button_path
+        print '-------------------------------------- last_selected_path =', self.last_selected_path
         if not self.last_selected_path:
             print "there is no last selected button, swap failed!!!"
             return
@@ -457,7 +454,7 @@ class BaseCustomContainerUIScreen(BaseUI):
     #     self.SetVisible(self.main_panel_path, False)
     #     self.mIsHide = True
 
-    def update_custom_container_ui(self, args):
+    def update_custom_container_ui(self):
         """更新自定义容器中内容"""
         pass
 
