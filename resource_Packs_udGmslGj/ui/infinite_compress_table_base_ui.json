@@ -624,17 +624,12 @@
   },
   "item_detail": {
     "$offset|default": [0, "-16px"],
-    "alpha": 1.0,
     "anchor_from": "bottom_middle",
     "anchor_to": "bottom_middle",
-    "clip_offset": [0, 0],
-    "clips_children": false,
     "controls": [
       {
         "item_detail_bg": {
-          "alpha": 0.0,
-          "anchor_from": "center",
-          "anchor_to": "center",
+          "alpha": "#infinite_item_detail_alpha",
           "bindings": [
             {
               "binding_condition": "always_when_visible",
@@ -642,16 +637,9 @@
               "binding_name_override": "#alpha"
             }
           ],
-          "clip_direction": "left",
-          "clip_offset": [0, 0],
-          "clip_ratio": 0.0,
-          "clips_children": false,
           "controls": [
             {
               "item_detail_text": {
-                "alpha": 0.0,
-                "anchor_from": "center",
-                "anchor_to": "center",
                 "bindings": [
                   {
                     "binding_condition": "always_when_visible",
@@ -659,61 +647,25 @@
                     "binding_name_override": "#alpha"
                   }
                 ],
-                "clip_offset": [0, 0],
-                "clips_children": false,
-                "color": [1, 1, 1],
-                "enabled": true,
-                "font_scale_factor": 1.0,
-                "font_size": "normal",
-                "font_type": "smooth",
-                "layer": 21,
-                "line_padding": 0.0,
-                "max_size": [0, 0],
-                "min_size": [0, 0],
-                "offset": [0, 0],
-                "propagate_alpha": false,
-                "shadow": false,
-                "size": [100, 100],
-                "text": "",
-                "text_alignment": "center",
                 "type": "label",
-                "visible": true
+                "layer": 1,
+                "alpha": "#infinite_item_detail_alpha",
+                "text": ""
               }
             }
           ],
-          "enabled": true,
-          "fill": false,
-          "grayscale": false,
-          "is_new_nine_slice": false,
-          "keep_ratio": true,
           "layer": 30,
-          "max_size": [0, 0],
-          "min_size": [0, 0],
-          "nine_slice_buttom": 0,
-          "nine_slice_left": 0,
-          "nine_slice_right": 0,
-          "nine_slice_top": 0,
           "nineslice_size": 4,
-          "offset": [0, 0],
-          "propagate_alpha": false,
           "size": ["100%c + 8px", "100%c + 8px"],
           "texture": "textures/ui/bg_detail",
-          "type": "image",
-          "uv": [0, 0],
-          "uv_size": [0, 0],
-          "visible": true
+          "type": "image"
         }
       }
     ],
-    "enabled": true,
     "layer": 30,
-    "max_size": [0, 0],
-    "min_size": [0, 0],
-    "offset": [0, 0],
-    "propagate_alpha": false,
+    "offset": "$offset",
     "size": ["100%c", "100%c"],
-    "type": "panel",
-    "visible": false
+    "type": "panel"
   },
   "item_label": {
     "alpha": 1.0,

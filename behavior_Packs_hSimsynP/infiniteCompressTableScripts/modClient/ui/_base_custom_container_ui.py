@@ -106,10 +106,10 @@ class BaseCustomContainerUIScreen(BaseUI):
         # text.SetEditText(self.pages)
 
     def on_from_item_button_touch(self, args):
-        print '----------------- on_from_item_button_touch --------------------- args =', args
+        pass
 
     def on_to_item_button_touch(self, args):
-        print '----------------- on_to_item_button_touch --------------------- args =', args
+        pass
 
     def register_item_btn_event(self, item_btn_path):
         if item_btn_path in self.already_register_item_btn:

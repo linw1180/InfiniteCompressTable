@@ -67,6 +67,23 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
 
         self.refresh_bag_ui()
 
+    def on_from_item_button_touch(self, args):
+        if args['TouchEvent'] == TouchEvent.TouchUp:
+            print '---------- on_from_item_button_touch up -------------'
+
+    def on_to_item_button_touch(self, args):
+        if args['TouchEvent'] == TouchEvent.TouchUp:
+            print '---------- on_to_item_button_touch up -------------'
+
+    def update_custom_container_ui(self, equipped_items):
+        for equipment_type, item_list in equipped_items.iteritems():
+            for slot, item_dict in enumerate(item_list):
+                btn = 'btn_{type}_{slot}'.format(type=equipment_type, slot=slot)
+                btn_path = '{prefix}/{btn}'.format(prefix=self.custom_container_panel_path, btn=btn)
+                self.bag_info[btn_path] = {"slot": btn, "item": item_dict}
+                self.slot_to_path[btn] = btn_path
+                self.set_slot_item_btn(btn_path, item_dict)
+
     def refresh_bag_ui(self):
         # 获取网格的子节点list（网格子节点其实就是按钮，此处获取的就是按钮名list）
         bag_grid_list = self.validate_scroll_grid_path()
