@@ -62,11 +62,11 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
         # 初始化两个自定义按钮数据
         from_item_btn_path = self.from_item_button_path
         self.bag_info[from_item_btn_path] = {"slot": 'input_slot', "item": None}
-        self.slot_to_path['input_btn'] = from_item_btn_path
+        self.slot_to_path['input_slot'] = from_item_btn_path
 
         to_item_btn_path = self.to_item_button_path
         self.bag_info[to_item_btn_path] = {"slot": 'output_slot', "item": None}
-        self.slot_to_path['output_btn'] = to_item_btn_path
+        self.slot_to_path['output_slot'] = to_item_btn_path
 
         # self.set_slot_item_btn(from_item_btn_path, None)
         # self.set_slot_item_btn(to_item_btn_path, None)

@@ -70,15 +70,14 @@ class CompressTable(Block):
         # 输出框 ==》背包 TODO 取出逻辑待写
         if isinstance(from_slot, str) and from_slot == 'output_slot':
             pass
-
         # 背包 ==》放入框
-        if isinstance(from_slot, int) and isinstance(to_slot, str):
+        elif isinstance(from_slot, int) and isinstance(to_slot, str):
             spawn_item_to_player_inv(from_item, player_id, from_slot)
             set_extra_data(player_id, "to_enchant_equipment", to_item)
             to_enchant_item = to_item
-
+            print '66666666666666666666666'
         # 放入框 ==》背包
-        if isinstance(from_slot, str) and isinstance(to_slot, int):
+        elif isinstance(from_slot, str) and isinstance(to_slot, int):
             spawn_item_to_player_inv(to_item, player_id, to_slot)
             set_extra_data(player_id, "to_enchant_equipment", from_item)
             to_enchant_item = from_item
