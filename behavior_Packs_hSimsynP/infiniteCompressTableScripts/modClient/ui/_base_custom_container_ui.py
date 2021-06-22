@@ -8,7 +8,6 @@ from ..utils.container_interaction_state_utils import ButtonEventType, NodeId, C
 from ..utils.fly_image_utils import FlyImage
 from ...modCommon.config.custom_container_config import DOUBLE_CLICK_INTERVAL, FLY_ANIMATION_DURATION, ITEM_DETAIL_ALPHA
 from ...modCommon.utils.item_utils import is_same_item
-from ...modCommon.utils.log_utils import func_log
 
 ViewBinder = clientApi.GetViewBinderCls()
 
@@ -53,8 +52,10 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.custom_container_panel_path = self.main_panel_path + "/armor_panel"  # 自定义槽位面板，用于控制飞行动画位置
 
         # 新增的自定义按鈕
-        self.from_item_button_path = "/from_item_button"
-        self.to_item_button_path = "/to_item_button"
+        # self.from_item_button_path = "/from_item_button"
+        # self.to_item_button_path = "/to_item_button"
+        self.from_item_button_path = "/input_btn"
+        self.to_item_button_path = "/output_btn"
 
         # endregion
 
@@ -94,18 +95,12 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.block_name = None
         # endregion
 
-    @func_log
+    # 注册两个自定义按钮，需要和网格中按钮注册到一起（不要单独注册）
     def on_ui_create(self):
-        print '============================ on_ui_create =============================='
-        self.AddTouchEventHandler(self.from_item_button_path, self.on_from_item_button_touch, {"isSwallow": True})
-        self.AddTouchEventHandler(self.to_item_button_path, self.on_to_item_button_touch, {"isSwallow": True})
+        self.AddTouchEventHandler(self.from_item_button_path, self.on_item_btn_touch, {"isSwallow": True})
+        self.AddTouchEventHandler(self.to_item_button_path, self.on_item_btn_touch, {"isSwallow": True})
 
-    def on_from_item_button_touch(self, args):
-        pass
-
-    def on_to_item_button_touch(self, args):
-        pass
-
+    # 注册网格中的按钮
     def register_item_btn_event(self, item_btn_path):
         if item_btn_path in self.already_register_item_btn:
             return
@@ -117,8 +112,8 @@ class BaseCustomContainerUIScreen(BaseUI):
     def refresh_bag_ui(self):
         pass
 
-    @func_log
     def handle_swap(self, button_path):
+        print '====== handle_swap ========'
         print '-------------------------------------- button_path =', button_path
         print '-------------------------------------- last_selected_path =', self.last_selected_path
         if not self.last_selected_path:
@@ -162,12 +157,13 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.item_detail_alpha = 2.0
 
     # def InitScreen(self):
-    #     self.HideUI()
+    #     self.HideUI(
 
     # def InitCustomContainerUI(self, args):
     #     """初始化自定义容器的UI，由子类覆写"""
     #     pass
 
+    # 网格按钮点击回调函数
     def on_item_btn_touch(self, args):
         touch_event = args["TouchEvent"]
         touch_pos = args["TouchPosX"], args["TouchPosY"]
@@ -256,6 +252,7 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.container_state_machine.reset_to_default()
 
     def handle_coalesce(self, button_path):
+        print '================ handle_coalesce ===================='
         if isinstance(self.get_slot_by_path(button_path), str):
             # 非背包栏位禁止合堆
             self.container_state_machine.reset_to_default()
@@ -335,8 +332,8 @@ class BaseCustomContainerUIScreen(BaseUI):
     #     self.set_item_at_path(drop_path, None)
 
     # 交换物品
-    @func_log
     def swap_item(self, args):
+        print '========= swap_item =========== args =', args
         from_slot = args["from_slot"]
         to_slot = args["to_slot"]
         from_path = self.slot_to_path[from_slot]
@@ -378,6 +375,8 @@ class BaseCustomContainerUIScreen(BaseUI):
         :param item: 物品字典
         :return:
         """
+        # if path == self.from_item_button_path or path == self.to_item_button_path:
+        #     path += '/item_btn'
         item_renderer = self.GetBaseUIControl(path + "/item_renderer")
         if item and item.get("count"):
             # 设置耐久
@@ -542,25 +541,6 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.container_state_machine.add_edge(NodeId.TouchProgressiveSelectComplete,
                                               NodeId.TouchProgressiveSelectCancel, self.can_un_selected)
 
-    # def show_ui(self, **kwargs):
-    #     # if not self.mIsHide:
-    #     #     return
-    #     # clientApi.HideHudGUI(True)
-    #     # clientApi.SetInputMode(1)
-    #     # clientApi.SetResponse(False)
-    #     if self.last_selected_path:
-    #         self.GetBaseUIControl(self.last_selected_path + "/img_selected").SetVisible(False)
-    #         self.last_selected_path = None
-    #     # self.InitCustomContainerUI(args)
-    #     self.block_pos = kwargs["pos"]
-    #     self.dimension = kwargs["dimension"]
-    #     self.block_name = kwargs["block_name"]
-    #     self.container_state_machine.reset_to_default()
-    #     # self.SetVisible(self.main_panel_path, True)
-    #     # self.mIsHide = False
-    #     super(BaseCustomContainerUIScreen, self).show_ui()
-
-    @func_log
     def show_ui(self, **kwargs):
         if self.last_selected_path:
             self.SetVisible(self.last_selected_path + "/img_selected", False)

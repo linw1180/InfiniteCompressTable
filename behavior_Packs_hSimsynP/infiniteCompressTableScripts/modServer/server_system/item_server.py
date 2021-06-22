@@ -21,6 +21,7 @@ def on_item_swap(args):
     if isinstance(from_slot, str) or isinstance(to_slot, str):
         if block_name in block_server.BLOCK_SERVER_MAPPING:
             block = block_server.BLOCK_SERVER_MAPPING[block_name]
+            print '888888888888'
             if not block.on_custom_container_item_swap(args):
                 return
     # 背包内部交换

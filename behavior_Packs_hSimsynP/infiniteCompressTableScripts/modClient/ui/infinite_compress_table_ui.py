@@ -5,7 +5,6 @@ from mod.common.minecraftEnum import TouchEvent
 from infiniteCompressTableScripts.modClient.api import add_timer, notify_to_server, local_player
 from infiniteCompressTableScripts.modClient.ui._base_custom_container_ui import BaseCustomContainerUIScreen
 from infiniteCompressTableScripts.modClient.utils.ui_utils import get_ui_manager
-from infiniteCompressTableScripts.modCommon.utils.log_utils import func_log
 
 
 class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
@@ -21,33 +20,16 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
         self.inv_grid_path = '/main_panel/inv_grid'  # 套用
         self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
 
-        # self.moying_panle_path = "/main_panel/grid0"
-
-        # self.search_panel_grid_path = "/main_panel/panel0/grid1"
-
-        # self.moying_btn_path_prefix = self.moying_panle_path + "/item_btn"
-        # self.page_path = "/bg_panel/bg/panel1"
-        # self.search_panel_path = "/main_panel/panel0"
-        # self.search_data = {}
-
-        # region custom
-
-        # endregion
-
         self.box_size = []
         self.text = None
         # self.mGridPath = self.scroll_panel_path + "/scroll_touch/scroll_view/panel/background_and_viewport/scrolling_view_port/scrolling_content"
 
-    @func_log
     def on_ui_create(self):
         super(InfiniteCompressTableUIScreen, self).on_ui_create()
         self.AddTouchEventHandler(self.btn_exit, self.close, {"isSwallow": True})
 
-    @func_log
     def show_ui(self, **kwargs):
         super(InfiniteCompressTableUIScreen, self).show_ui(**kwargs)
-        # 初始化自定义按钮数据
-        # self.update_custom_container_ui()
 
     def tick(self):
         super(InfiniteCompressTableUIScreen, self).tick()
@@ -57,7 +39,6 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
         if args['TouchEvent'] == TouchEvent.TouchUp:
             get_ui_manager().pop_ui()
 
-    @func_log
     def update_bag_ui(self, args):
         print '================= update_bag_ui ======================= args =', args
         # 更新背包UI
@@ -68,42 +49,29 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
             item_dict = args[i]
             self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
             self.slot_to_path[i] = item_btn_path
+
         self.refresh_bag_ui()
 
-    @func_log
+        # 初始化自定义按钮数据
+        self.update_custom_container_ui()
+        print '---------------------------- bag_info =', self.bag_info
+        print '---------------------------- slot_to_path =', self.slot_to_path
+
     def update_custom_container_ui(self):
-
+        print '========= update_custom_container_ui ============='
         # 初始化两个自定义按钮数据
-
-        # "/from_item_button"
         from_item_btn_path = self.from_item_button_path
-        # bag_info = ["/from_item_button": {"slot": 'input_slot', "item": None}]
         self.bag_info[from_item_btn_path] = {"slot": 'input_slot', "item": None}
-        self.slot_to_path[36] = from_item_btn_path
+        self.slot_to_path['input_btn'] = from_item_btn_path
 
-        # "/to_item_button"
         to_item_btn_path = self.to_item_button_path
-        # bag_info = ["/to_item_button": {"slot": 'output_slot', "item": None}]
         self.bag_info[to_item_btn_path] = {"slot": 'output_slot', "item": None}
-        self.slot_to_path[37] = to_item_btn_path
+        self.slot_to_path['output_btn'] = to_item_btn_path
 
-        print '------------------------------------------------------------------ bag_info =', self.bag_info
-        print '------------------------------------------------------------------ slot_to_path =', self.slot_to_path
-        # for equipment_type, item_list in equipped_items.iteritems():
-        #     for slot, item_dict in enumerate(item_list):
-        #         btn = 'btn_{type}_{slot}'.format(type=equipment_type, slot=slot)
-        #         btn_path = '{prefix}/{btn}'.format(prefix=self.custom_container_panel_path, btn=btn)
-        #         self.bag_info[btn_path] = {"slot": btn, "item": item_dict}
-        #         self.slot_to_path[btn] = btn_path
-        #         self.set_slot_item_btn(btn_path, item_dict)
-
-    def on_from_item_button_touch(self, args):
-        if args['TouchEvent'] == TouchEvent.TouchUp:
-            print '---------- on_from_item_button_touch up ------------- args =', args
-
-    def on_to_item_button_touch(self, args):
-        if args['TouchEvent'] == TouchEvent.TouchUp:
-            print '---------- on_to_item_button_touch up ------------- args =', args
+        # self.set_slot_item_btn(from_item_btn_path, None)
+        # self.set_slot_item_btn(to_item_btn_path, None)
+        # self.register_item_btn_event(from_item_btn_path)
+        # self.register_item_btn_event(to_item_btn_path)
 
     def refresh_bag_ui(self):
         # 获取网格的子节点list（网格子节点其实就是按钮，此处获取的就是按钮名list）
