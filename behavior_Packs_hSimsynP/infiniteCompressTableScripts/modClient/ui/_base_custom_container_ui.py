@@ -355,6 +355,11 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.set_item_at_path(to_path, from_item)
 
     def _update_fly_image(self, from_item, from_pos, to_pos):
+        print '--------------------------------------- from_item =', from_item
+        print '--------------------------------------- from_pos =', from_pos
+        print '--------------------------------------- to_pos =', to_pos
+        if not from_item:
+            return
         fly_image = self.get_fly_img()
         fly_image.init_pos(from_pos, to_pos)
         self.SetUiItem(fly_image.get_path(), from_item["itemName"], from_item["auxValue"],

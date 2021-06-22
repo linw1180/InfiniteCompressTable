@@ -75,14 +75,16 @@ class CompressTable(Block):
             spawn_item_to_player_inv(from_item, player_id, from_slot)
             set_extra_data(player_id, "to_enchant_equipment", to_item)
             to_enchant_item = to_item
-            print '66666666666666666666666'
         # 放入框 ==》背包
         elif isinstance(from_slot, str) and isinstance(to_slot, int):
-            spawn_item_to_player_inv(to_item, player_id, to_slot)
-            set_extra_data(player_id, "to_enchant_equipment", from_item)
-            to_enchant_item = from_item
-
-        # notify_to_client(player_id, "OnEnchantSlotItem", {
+            if to_item is not None:
+                spawn_item_to_player_inv(to_item, player_id, to_slot)
+                set_extra_data(player_id, "to_enchant_equipment", from_item)
+                to_enchant_item = from_item
+                print '111111111111111111111'
+            else:
+                spawn_item_to_player_inv(from_item, player_id, to_slot)
+            # notify_to_client(player_id, "OnEnchantSlotItem", {
         #     "to_enchant_equipment": to_enchant_item,
         #     ""
         #     "block_name": block_name
