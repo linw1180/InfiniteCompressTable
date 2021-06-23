@@ -3,7 +3,8 @@ import mod.client.extraClientApi as clientApi
 from mod.common.minecraftEnum import TouchEvent
 
 from ._base_ui import BaseUI
-from ..api import get_item_basic_info, get_item_formatted_hover_text, notify_to_server, local_player
+from ..api import get_item_basic_info, get_item_formatted_hover_text, notify_to_server, local_player, \
+    get_item_hover_name
 from ..utils.container_interaction_state_utils import ButtonEventType, NodeId, ContainerInteractionStateMachine
 from ..utils.fly_image_utils import FlyImage
 from ...modCommon.config.custom_container_config import DOUBLE_CLICK_INTERVAL, FLY_ANIMATION_DURATION, ITEM_DETAIL_ALPHA
@@ -56,6 +57,11 @@ class BaseCustomContainerUIScreen(BaseUI):
         # self.to_item_button_path = "/to_item_button"
         self.from_item_button_path = "/input_btn"
         self.to_item_button_path = "/output_btn"
+
+        self.label1_name = '/pe_kuang_image/label1_name'
+        self.label1_count = '/pe_kuang_image/label1_count'
+        self.label2_name = '/pe_kuang_image/label2_name'
+        self.label2_count = '/pe_kuang_image/label2_count'
 
         # endregion
 
@@ -344,6 +350,19 @@ class BaseCustomContainerUIScreen(BaseUI):
         from_item = args["from_item"]
         to_item = args["to_item"]
 
+        label1_name_ctrl = self.GetBaseUIControl(self.label1_name).asLabel()
+        label2_name_ctrl = self.GetBaseUIControl(self.label2_name).asLabel()
+        label1_count_ctrl = self.GetBaseUIControl(self.label1_count).asLabel()
+        label2_count_ctrl = self.GetBaseUIControl(self.label2_count).asLabel()
+
+        def set_label_default():
+            # 设置物品名称显示
+            label1_name_ctrl.SetText('')
+            label2_name_ctrl.SetText('')
+            # 设置物品数量显示
+            label1_count_ctrl.SetText('')
+            label2_count_ctrl.SetText('')
+
         # 更新飞行动画
         self.fly_animation_time = FLY_ANIMATION_DURATION
         from_pos = self.get_item_position(from_path)
@@ -364,17 +383,31 @@ class BaseCustomContainerUIScreen(BaseUI):
             self.set_item_at_path(from_path, to_item)
             self.set_item_at_path(to_path, from_item)
 
+            # item_name_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"], True, item.get("userData"))
+            # 设置物品名称显示
+            item_name_text = get_item_hover_name(from_item['itemName'], from_item['auxValue'], from_item['userData'])
+            label1_name_ctrl.SetText(item_name_text)
+            label2_name_ctrl.SetText(item_name_text)
+            # 设置物品数量显示
+            item_count_text = str(from_item['count'])
+            label1_count_ctrl.SetText(item_count_text)
+            label2_count_ctrl.SetText(item_count_text)
+
         if from_path == '/input_btn':
             from_path = '/output_btn'
             self.swap_item_ui(from_path, to_path, from_item, to_item)
             self.set_item_at_path(from_path, to_item)
             self.set_item_at_path(to_path, from_item)
+            # 恢复默认文本显示
+            set_label_default()
 
         if from_path == '/output_btn':
             from_path = '/input_btn'
             self.swap_item_ui(from_path, to_path, from_item, to_item)
             self.set_item_at_path(from_path, to_item)
             self.set_item_at_path(to_path, from_item)
+            # 恢复默认文本显示
+            set_label_default()
         print '55555555555555555555555555555555555 from_path =', from_path
         print '55555555555555555555555555555555555 to_item =', to_item
         print '66666666666666666666666666666666666 from_item =', from_item

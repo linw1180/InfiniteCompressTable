@@ -19,11 +19,6 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
         self.inv_grid_path = '/main_panel/inv_grid'  # 套用
         self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
 
-        self.label1_name = '/pe_kuang_image/label1_name'
-        self.label1_count = '/pe_kuang_image/label1_count'
-        self.label2_name = '/pe_kuang_image/label2_name'
-        self.label2_count = '/pe_kuang_image/label2_count'
-
     def on_ui_create(self):
         super(InfiniteCompressTableUIScreen, self).on_ui_create()
         self.AddTouchEventHandler(self.btn_exit, self.close, {"isSwallow": True})
