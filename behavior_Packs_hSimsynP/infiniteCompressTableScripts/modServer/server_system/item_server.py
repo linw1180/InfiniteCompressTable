@@ -3,7 +3,7 @@ from mod.common.minecraftEnum import ItemPosType
 
 from infiniteCompressTableScripts.modCommon.utils import item_utils
 from infiniteCompressTableScripts.modServer.api import get_player_item, get_item_basic_info, set_player_inv_item_num, \
-    spawn_item_to_player_inv, exchange_player_inv_item, notify_to_client
+    spawn_item_to_player_inv, exchange_player_inv_item, notify_to_client, change_player_item_tips_and_extra_id
 from infiniteCompressTableScripts.modServer.server_system import block_server
 
 
@@ -84,3 +84,19 @@ def on_item_swap(args):
     args["from_item"] = from_item
     args["to_item"] = to_item
     notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+
+# def set_item_custom_tips(args):
+#     player_id = args['player_id']
+#     slot = args['slot']
+#     item_dict = get_player_item(player_id, ItemPosType.INVENTORY, slot)
+#
+#     if not item_dict or item_dict['customTips']:
+#         return
+#
+#     item_name = item_dict['itemName']
+#     if item_name in ITEM_CUSTOM_TIPS:
+#         cn_name = get_item_basic_info(item_name)['itemName']
+#         tips = cn_name + '\n' + ITEM_CUSTOM_TIPS[item_name]
+#
+#         # 修改玩家物品的自定义tips和自定义标识符
+#         change_player_item_tips_and_extra_id(player_id, ItemPosType.INVENTORY, slot, tips, item_dict['extraId'])

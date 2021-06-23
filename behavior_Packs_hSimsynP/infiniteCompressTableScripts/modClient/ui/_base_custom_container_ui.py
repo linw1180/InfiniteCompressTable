@@ -318,6 +318,9 @@ class BaseCustomContainerUIScreen(BaseUI):
 
     def set_item_at_path(self, item_path, item):
         self.bag_info[item_path]["item"] = item
+        print '============================== item_path =', item_path
+        print '============================== item =', item
+        print '-------------------------------------------- bag_info =', self.bag_info
 
     def get_item_by_path(self, item_path):
         return self.bag_info[item_path]["item"]
@@ -351,12 +354,17 @@ class BaseCustomContainerUIScreen(BaseUI):
             self._update_fly_image(to_item, to_pos, from_pos)
 
         self.swap_item_ui(from_path, to_path, from_item, to_item)
+
         self.set_item_at_path(from_path, to_item)
         self.set_item_at_path(to_path, from_item)
+        print '55555555555555555555555555555555555 from_path =', from_path
+        print '55555555555555555555555555555555555 to_item =', to_item
+        print '66666666666666666666666666666666666 from_item =', from_item
+        print '66666666666666666666666666666666666 to_path =', to_path
 
     def _update_fly_image(self, from_item, from_pos, to_pos):
-        # if not from_item:
-        #     return
+        if not from_item:
+            return
         fly_image = self.get_fly_img()
         fly_image.init_pos(from_pos, to_pos)
         self.SetUiItem(fly_image.get_path(), from_item["itemName"], from_item["auxValue"],

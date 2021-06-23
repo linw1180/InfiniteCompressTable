@@ -28,6 +28,9 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
         super(InfiniteCompressTableUIScreen, self).on_ui_create()
         self.AddTouchEventHandler(self.btn_exit, self.close, {"isSwallow": True})
 
+        # 初始化自定义按钮数据
+        # self.update_custom_container_ui()
+
     def show_ui(self, **kwargs):
         super(InfiniteCompressTableUIScreen, self).show_ui(**kwargs)
 
