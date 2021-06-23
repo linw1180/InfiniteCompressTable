@@ -7,6 +7,25 @@ from infiniteCompressTableScripts.modServer.api import get_player_item, get_item
 from infiniteCompressTableScripts.modServer.server_system import block_server
 
 
+def set_item_custom_tips(args):
+    player_id = args['player_id']
+    slot = args['slot']
+    # count = args['count']
+    item_dict = get_player_item(player_id, ItemPosType.INVENTORY, slot)
+
+    if not item_dict or item_dict['customTips']:
+        return
+
+    item_name = item_dict['itemName']
+    # if item_name in ITEM_CUSTOM_TIPS:
+    #     cn_name = get_item_basic_info(item_name)['itemName']
+    #     tips = cn_name + '\n' + ITEM_CUSTOM_TIPS[item_name]
+
+    tips = "数量：" + '\n' + "\n§b§o" + '20' + "§r"
+    # 修改玩家物品的自定义tips和自定义标识符
+    change_player_item_tips_and_extra_id(player_id, ItemPosType.INVENTORY, slot, tips, item_dict['extraId'])
+
+
 def on_item_swap(args):
     print '------------------- on_item_swap --------------------- args =', args
     player_id = args['player_id']
@@ -32,6 +51,7 @@ def on_item_swap(args):
         print '---------------------- in bag exchange ------------------------'
         if isinstance(to_slot, int):
             to_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+            # set_item_custom_tips({'player_id': player_id, 'slot': to_slot})
             print '...................................... to_item =', to_item
         if isinstance(from_slot, int):
             from_item = get_player_item(player_id, ItemPosType.INVENTORY, from_slot, True)
@@ -84,19 +104,3 @@ def on_item_swap(args):
     args["from_item"] = from_item
     args["to_item"] = to_item
     notify_to_client(player_id, 'OnItemSwapServerEvent', args)
-
-# def set_item_custom_tips(args):
-#     player_id = args['player_id']
-#     slot = args['slot']
-#     item_dict = get_player_item(player_id, ItemPosType.INVENTORY, slot)
-#
-#     if not item_dict or item_dict['customTips']:
-#         return
-#
-#     item_name = item_dict['itemName']
-#     if item_name in ITEM_CUSTOM_TIPS:
-#         cn_name = get_item_basic_info(item_name)['itemName']
-#         tips = cn_name + '\n' + ITEM_CUSTOM_TIPS[item_name]
-#
-#         # 修改玩家物品的自定义tips和自定义标识符
-#         change_player_item_tips_and_extra_id(player_id, ItemPosType.INVENTORY, slot, tips, item_dict['extraId'])

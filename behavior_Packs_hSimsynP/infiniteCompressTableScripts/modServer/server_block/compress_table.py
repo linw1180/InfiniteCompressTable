@@ -92,6 +92,9 @@ class CompressTable(Block):
         # 输出框 ==》背包（只存在直接取出的情况）
         if isinstance(from_slot, str) and from_slot == 'output_slot':
             to_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+            # 设置物品自定义tips和标识符
+            # cls.set_item_custom_tips({'player_id': player_id, 'slot': to_slot, 'count': from_item['count']})
+            # set_item_custom_tips({'player_id': player_id, 'slot': to_slot})
             if take_percent == 1 and not to_item:
                 spawn_item_to_player_inv(from_item, player_id, to_slot)
         # 背包 ==》放入框
@@ -106,6 +109,7 @@ class CompressTable(Block):
         # 放入框 ==》背包
         elif isinstance(from_slot, str) and from_slot == 'input_slot':
             to_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+            # set_item_custom_tips({'player_id': player_id, 'slot': to_slot, 'count': 20})
             # 只有在存在空余槽位时才被允许放入背包
             if take_percent == 1 and not to_item:
                 spawn_item_to_player_inv(from_item, player_id, to_slot)

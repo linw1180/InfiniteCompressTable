@@ -2,7 +2,7 @@
 
 import mod.client.extraClientApi as clientApi
 
-from infiniteCompressTableScripts.modClient.api import un_listen_all_events
+from infiniteCompressTableScripts.modClient.api import un_listen_all_events, notify_to_server, local_player
 from infiniteCompressTableScripts.modClient.client_system import ui_client
 from infiniteCompressTableScripts.modClient.utils.ui_utils import get_ui_manager
 from infiniteCompressTableScripts.modCommon import ModName, ModServerSystemName
@@ -23,6 +23,7 @@ class InfiniteCompressTableClientSystem(ClientSystem):
     def listen_events(self):
         for event_name, instance, function in [
             ['UiInitFinished', get_ui_manager(), get_ui_manager().init_all_ui],
+            ['OnItemSlotButtonClickedEvent', self, self.on_click_item_slot],
         ]:
             self.ListenForEvent(Namespace, SystemName, event_name, instance, function)
 
@@ -36,3 +37,13 @@ class InfiniteCompressTableClientSystem(ClientSystem):
     @staticmethod
     def Destroy():
         un_listen_all_events()
+
+    @staticmethod
+    def on_click_item_slot(args):
+        """
+        点击快捷栏和背包栏时返回玩家背包物品槽信号，用于通知服务端更新item tips
+
+        :param args:
+        :return:
+        """
+        notify_to_server('OnClickItemSlot', {'player_id': local_player, 'slot': args['slotIndex']})
