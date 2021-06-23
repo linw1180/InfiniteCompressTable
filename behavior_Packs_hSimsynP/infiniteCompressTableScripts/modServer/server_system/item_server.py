@@ -22,8 +22,11 @@ def on_item_swap(args):
         if block_name in block_server.BLOCK_SERVER_MAPPING:
             block = block_server.BLOCK_SERVER_MAPPING[block_name]
             print '888888888888'
-            if not block.on_custom_container_item_swap(args):
-                return
+            # if not block.on_custom_container_item_swap(args):
+            #     return
+            block.on_custom_container_item_swap(args)
+            return
+
     # 背包内部交换
     else:
         print '---------------------- in bag exchange ------------------------'
