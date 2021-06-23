@@ -357,6 +357,24 @@ class BaseCustomContainerUIScreen(BaseUI):
 
         self.set_item_at_path(from_path, to_item)
         self.set_item_at_path(to_path, from_item)
+
+        if to_path == '/input_btn':
+            to_path = '/output_btn'
+            self.swap_item_ui(from_path, to_path, from_item, to_item)
+            self.set_item_at_path(from_path, to_item)
+            self.set_item_at_path(to_path, from_item)
+
+        if from_path == '/input_btn':
+            from_path = '/output_btn'
+            self.swap_item_ui(from_path, to_path, from_item, to_item)
+            self.set_item_at_path(from_path, to_item)
+            self.set_item_at_path(to_path, from_item)
+
+        if from_path == '/output_btn':
+            from_path = '/input_btn'
+            self.swap_item_ui(from_path, to_path, from_item, to_item)
+            self.set_item_at_path(from_path, to_item)
+            self.set_item_at_path(to_path, from_item)
         print '55555555555555555555555555555555555 from_path =', from_path
         print '55555555555555555555555555555555555 to_item =', to_item
         print '66666666666666666666666666666666666 from_item =', from_item
