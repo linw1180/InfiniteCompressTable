@@ -23,7 +23,7 @@ class InfiniteCompressTableClientSystem(ClientSystem):
     def listen_events(self):
         for event_name, instance, function in [
             ['UiInitFinished', get_ui_manager(), get_ui_manager().init_all_ui],
-            ['OnItemSlotButtonClickedEvent', self, self.on_click_item_slot],
+            # ['OnItemSlotButtonClickedEvent', self, self.on_click_item_slot],
         ]:
             self.ListenForEvent(Namespace, SystemName, event_name, instance, function)
 
@@ -46,4 +46,5 @@ class InfiniteCompressTableClientSystem(ClientSystem):
         :param args:
         :return:
         """
+        print '111args =', args
         notify_to_server('OnClickItemSlot', {'player_id': local_player, 'slot': args['slotIndex']})
