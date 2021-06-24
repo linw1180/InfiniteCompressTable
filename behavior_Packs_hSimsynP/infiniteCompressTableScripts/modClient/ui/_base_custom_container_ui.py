@@ -389,7 +389,25 @@ class BaseCustomContainerUIScreen(BaseUI):
             label1_name_ctrl.SetText(item_name_text)
             label2_name_ctrl.SetText(item_name_text)
             # 设置物品数量显示
-            item_count_text = str(from_item['count'])
+
+            # from_item = {'itemId': -745, 'count': 1, 'modItemId': '', 'enchantData': [], 'durability': 0,
+            #              'customTips': '\xe5\xb7\xb2\xe5\x8e\x8b\xe7\xbc\xa9\xe6\x95\xb0\xe9\x87\x8f \xc2\xa7b\xc2\xa7o128\xc2\xa7r',
+            #              'extraId': '{"cus_tips": "\\u5df2\\u538b\\u7f29\\u6570\\u91cf \\u00a7b\\u00a7o128\\u00a7r", "new_count": 128}',
+            #              'modId': '', 'userData': {'ItemExtraID': {'__type__': 8,
+            #                                                        '__value__': '{"cus_tips": "\\u5df2\\u538b\\u7f29\\u6570\\u91cf \\u00a7b\\u00a7o128\\u00a7r", "new_count": 128}'},
+            #                                        'ItemCustomTips': {'__type__': 8,
+            #                                                           '__value__': '\xe5\xb7\xb2\xe5\x8e\x8b\xe7\xbc\xa9\xe6\x95\xb0\xe9\x87\x8f \xc2\xa7b\xc2\xa7o128\xc2\xa7r'}},
+            #              'isDiggerItem': False, 'itemName': 'xl:block_limited_compress_table', 'auxValue': 0,
+            #              'showInHand': True}
+
+            if not from_item['extraId']:
+                # 未压缩的物品 ===》放入框
+                item_count_text = str(from_item['count'])
+            else:
+                #  压缩过物品 ===》放入框
+                print '111', from_item['extraId']
+                print '222', from_item['extraId']['new_count']
+                item_count_text = str(from_item['extraId']['new_count'])
             label1_count_ctrl.SetText(item_count_text)
             label2_count_ctrl.SetText(item_count_text)
 
