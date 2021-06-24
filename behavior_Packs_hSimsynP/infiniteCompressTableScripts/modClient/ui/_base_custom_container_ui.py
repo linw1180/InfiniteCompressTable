@@ -119,7 +119,7 @@ class BaseCustomContainerUIScreen(BaseUI):
         pass
 
     def handle_swap(self, button_path):
-        print '====== handle_swap ========'
+        print '====== client base_ui ==> handle_swap ========'
         print '-------------------------------------- button_path =', button_path
         print '-------------------------------------- last_selected_path =', self.last_selected_path
         if not self.last_selected_path:
@@ -324,9 +324,6 @@ class BaseCustomContainerUIScreen(BaseUI):
 
     def set_item_at_path(self, item_path, item):
         self.bag_info[item_path]["item"] = item
-        print '============================== item_path =', item_path
-        print '============================== item =', item
-        print '-------------------------------------------- bag_info =', self.bag_info
 
     def get_item_by_path(self, item_path):
         return self.bag_info[item_path]["item"]
@@ -342,7 +339,7 @@ class BaseCustomContainerUIScreen(BaseUI):
 
     # 交换物品
     def swap_item(self, args):
-        print '========= swap_item =========== args =', args
+        print '========= client base_ui ====> swap_item() =========== args =', args
         from_slot = args["from_slot"]
         to_slot = args["to_slot"]
         from_path = self.slot_to_path[from_slot]
@@ -390,23 +387,11 @@ class BaseCustomContainerUIScreen(BaseUI):
             label2_name_ctrl.SetText(item_name_text)
             # 设置物品数量显示
 
-            # from_item = {'itemId': -745, 'count': 1, 'modItemId': '', 'enchantData': [], 'durability': 0,
-            #              'customTips': '\xe5\xb7\xb2\xe5\x8e\x8b\xe7\xbc\xa9\xe6\x95\xb0\xe9\x87\x8f \xc2\xa7b\xc2\xa7o128\xc2\xa7r',
-            #              'extraId': '{"cus_tips": "\\u5df2\\u538b\\u7f29\\u6570\\u91cf \\u00a7b\\u00a7o128\\u00a7r", "new_count": 128}',
-            #              'modId': '', 'userData': {'ItemExtraID': {'__type__': 8,
-            #                                                        '__value__': '{"cus_tips": "\\u5df2\\u538b\\u7f29\\u6570\\u91cf \\u00a7b\\u00a7o128\\u00a7r", "new_count": 128}'},
-            #                                        'ItemCustomTips': {'__type__': 8,
-            #                                                           '__value__': '\xe5\xb7\xb2\xe5\x8e\x8b\xe7\xbc\xa9\xe6\x95\xb0\xe9\x87\x8f \xc2\xa7b\xc2\xa7o128\xc2\xa7r'}},
-            #              'isDiggerItem': False, 'itemName': 'xl:block_limited_compress_table', 'auxValue': 0,
-            #              'showInHand': True}
-
             if not from_item['extraId']:
                 # 未压缩的物品 ===》放入框
                 item_count_text = str(from_item['count'])
             else:
                 #  压缩过物品 ===》放入框
-                print '111', from_item['extraId']
-                print '222', from_item['extraId']['new_count']
                 item_count_text = str(from_item['extraId']['new_count'])
             label1_count_ctrl.SetText(item_count_text)
             label2_count_ctrl.SetText(item_count_text)
@@ -426,10 +411,6 @@ class BaseCustomContainerUIScreen(BaseUI):
             self.set_item_at_path(to_path, from_item)
             # 恢复默认文本显示
             set_label_default()
-        print '55555555555555555555555555555555555 from_path =', from_path
-        print '55555555555555555555555555555555555 to_item =', to_item
-        print '66666666666666666666666666666666666 from_item =', from_item
-        print '66666666666666666666666666666666666 to_path =', to_path
 
     def _update_fly_image(self, from_item, from_pos, to_pos):
         if not from_item:

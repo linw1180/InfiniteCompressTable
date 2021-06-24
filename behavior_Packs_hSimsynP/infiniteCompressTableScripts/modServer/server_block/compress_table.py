@@ -43,7 +43,7 @@ class CompressTable(Block):
 
     @classmethod
     def on_custom_container_item_swap(cls, args):
-        print '=================== on_custom_container_item_swap ====================== args =', args
+        print '========= server ===> on_custom_container_item_swap ========= args =', args
         player_id = args['player_id']
         block_name = args['block_name']
         from_slot = args['from_slot']
@@ -51,20 +51,9 @@ class CompressTable(Block):
         from_item = args['from_item']
         to_item = args['to_item']
         take_percent = args['take_percent']
-        # logger.info("custom_container_item_swap=={}-+{}".format(isinstance(from_slot, str), isinstance(to_slot, str)))
-        # logger.info("custom_swap_item==={}:{}".format(to_item, from_item))
-        # 因为自定义槽位名是str，背包槽位名是int所以做如下判断
 
-        # 执行到此处说明此次交换必定有一个自定义槽位存在----------
-        test = {'from_slot': 34, 'block_name': 'xl:block_compress_table',
-                'from_item': {'itemId': 61, 'count': 3, 'isDiggerItem': False, 'enchantData': [], 'durability': 0,
-                              'customTips': '', 'extraId': '', 'modId': '', 'userData': None, 'modItemId': '',
-                              'itemName': 'minecraft:furnace', 'auxValue': 0, 'showInHand': True},
-                'to_item': {'itemId': -159, 'count': 55, 'isDiggerItem': False, 'enchantData': [], 'durability': 0,
-                            'customTips': '', 'extraId': '', 'modId': '', 'userData': None, 'modItemId': '',
-                            'itemName': 'minecraft:turtle_egg', 'auxValue': 0, 'showInHand': True},
-                'to_slot': 'input_slot', 'player_id': '-38654705663', 'block_pos': (3059, 68, 16), 'take_percent': 1,
-                'dimension': 0}
+        # 执行到此处说明此次交换必定有一个自定义槽位存在
+        # 因为自定义槽位名是str，背包槽位名是int所以做如下判断
 
         # 输出框不允许放入操作
         if isinstance(to_slot, str) and to_slot == 'output_slot':
@@ -213,16 +202,6 @@ class CompressTable(Block):
         if not item_dict:
             return
 
-        # from_item = {'itemId': -745, 'count': 1, 'modItemId': '', 'enchantData': [], 'durability': 0,
-        #              'customTips': '\xe5\xb7\xb2\xe5\x8e\x8b\xe7\xbc\xa9\xe6\x95\xb0\xe9\x87\x8f \xc2\xa7b\xc2\xa7o128\xc2\xa7r',
-        #              'extraId': '{"cus_tips": "\\u5df2\\u538b\\u7f29\\u6570\\u91cf \\u00a7b\\u00a7o128\\u00a7r", "new_count": 128}',
-        #              'modId': '', 'userData': {'ItemExtraID': {'__type__': 8,
-        #                                                        '__value__': '{"cus_tips": "\\u5df2\\u538b\\u7f29\\u6570\\u91cf \\u00a7b\\u00a7o128\\u00a7r", "new_count": 128}'},
-        #                                        'ItemCustomTips': {'__type__': 8,
-        #                                                           '__value__': '\xe5\xb7\xb2\xe5\x8e\x8b\xe7\xbc\xa9\xe6\x95\xb0\xe9\x87\x8f \xc2\xa7b\xc2\xa7o128\xc2\xa7r'}},
-        #              'isDiggerItem': False, 'itemName': 'xl:block_limited_compress_table', 'auxValue': 0,
-        #              'showInHand': True}
-
         # item_name = item_dict['itemName']
         # if item_name in ITEM_CUSTOM_TIPS:
         #     cn_name = get_item_basic_info(item_name)['itemName']
@@ -234,4 +213,4 @@ class CompressTable(Block):
         # python对象 --》json字符串
         str_extra_id = json.dumps(extra_id_dict)
         # 修改玩家物品的自定义tips和自定义标识符
-        print '99999', change_player_item_tips_and_extra_id(player_id, ItemPosType.INVENTORY, slot, tips, str_extra_id)
+        change_player_item_tips_and_extra_id(player_id, ItemPosType.INVENTORY, slot, tips, str_extra_id)

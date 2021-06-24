@@ -46,5 +46,4 @@ class InfiniteCompressTableClientSystem(ClientSystem):
         :param args:
         :return:
         """
-        print '111args =', args
         notify_to_server('OnClickItemSlot', {'player_id': local_player, 'slot': args['slotIndex']})
