@@ -164,29 +164,71 @@ class CompressTable(Block):
             if take_percent < 1:  # 不允许分堆取出
                 return False
             if take_percent == 1 and not to_item:
-                # region 设置生成压缩物品的相关数据，主要设置 count tips extraId
-                # 深拷贝一个临时item，获取最新count用
-                temp_item = copy.deepcopy(from_item)
-                compress_count = temp_item['count']
-                # 背包指定槽位无数据，需要手动进行生成
-                from_item['count'] = 1
-                tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(compress_count) + "§r"
-                from_item['customTips'] = tips
-                # python对象 --》json字符串
-                str_extra_id = json.dumps(temp_item)
-                # extraId存储数据类型必须为字符串
-                from_item['extraId'] = str_extra_id
+                # # region 设置生成压缩物品的相关数据，主要设置 count tips extraId
+                # # 深拷贝一个临时item，获取最新count用
+                # temp_item = copy.deepcopy(from_item)
+                # compress_count = temp_item['count']
+                # # 背包指定槽位无数据，需要手动进行生成
+                # from_item['count'] = 1
+                # tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(compress_count) + "§r"
+                # from_item['customTips'] = tips
+                # temp_item['count'] = 1
+                # # extraId 存储的数据格式：{'item_dict': temp_item, 'compress_count': compress_count}
+                # data = {'item_dict': temp_item, 'compress_count': compress_count}
+                # # python对象 --》json字符串
+                # str_extra_id = json.dumps(data)
+                # # extraId存储数据类型必须为字符串
+                # from_item['extraId'] = str_extra_id
+                # # 生成到背包指定槽位
+                # spawn_item_to_player_inv(from_item, player_id, to_slot)
+                # # 最新的物品数据传送到客户端进行交换
                 # from_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
-                spawn_item_to_player_inv(from_item, player_id, to_slot)
-                print '11111111111111111', get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
-                from_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+                # # endregion
 
+                # region 设置生成压缩物品的相关数据，主要设置 count tips extraId
+                # 最初from_item数据
+                from_item_copy = copy.deepcopy(from_item)
+
+                # json字符串 ==》python对象
+                data = json.loads(from_item['extraId'])
+                # 将存储在extraId中最原始的物品信息赋给from_item
+                from_item = data['item_dict']
+                from_item['count'] = 1
+
+                tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(data['compress_count']) + "§r"
+                from_item['customTips'] = tips
+
+                from_item['extraId'] = from_item_copy['extraId']
+
+                spawn_item_to_player_inv(from_item, player_id, to_slot)
+                # 最新的物品数据传送到客户端进行交换
+                from_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
                 # endregion
 
         # 背包 ==》放入框
         elif isinstance(from_slot, int) and to_slot == 'input_slot':
-            # 当放入框为没有物品时
+            # 当放入框中没有物品时
             if take_percent == 1 and not to_item:
+
+                if not from_item['extraId']:
+                    # 处理：未压缩物品放入
+                    temp_item = copy.deepcopy(from_item)
+                    compress_count = temp_item['count']
+
+                    from_item['count'] = 1
+                    temp_item['count'] = 1
+
+                    data = {'item_dict': temp_item, 'compress_count': compress_count}
+                    # python对象 --》json字符串
+                    str_extra_id = json.dumps(data)
+                    # extraId存储数据类型必须为字符串
+                    from_item['extraId'] = str_extra_id
+                    print '44444444444444444 from_item =', from_item
+                else:
+                    # 处理：已压缩物品放入
+                    from_item['count'] = 1
+                    from_item['customTips'] = ''
+
                 # 处理背包数据，清空指定槽位物品
                 set_player_inv_item_num(player_id, from_slot, 0)
 

@@ -132,6 +132,7 @@ class BaseCustomContainerUIScreen(BaseUI):
         if from_item:
             from_item_detail_text = get_item_formatted_hover_text(from_item["itemName"], from_item["auxValue"], True,
                                                                   from_item.get("userData"))
+            print '---------------------------------------------- from_item_detail_text =', from_item_detail_text
         else:
             from_item_detail_text = ''
         if to_item:
@@ -359,14 +360,6 @@ class BaseCustomContainerUIScreen(BaseUI):
     def swap_item(self, args):
         print '========= client base_ui ====> swap_item() =========== args =', args
 
-        a = {'to_item_detail_text': '', 'from_slot': 'output_slot', 'block_name': 'xl:block_compress_table',
-             'from_item': {'itemId': 241, 'count': 1, 'modItemId': '', 'enchantData': [], 'durability': 0,
-                           'customTips': '\xc2\xa7f\xe7\xb4\xab\xe8\x89\xb2\xe7\x8e\xbb\xe7\x92\x83\xc2\xa7r\n\xc2\xa79\xc2\xa79\xe5\xbb\xba\xe7\xad\x91\xc2\xa7r\xc2\xa7r\xc2\xa7r\xc2\xa7r\n\xe5\xb7\xb2\xe5\x8e\x8b\xe7\xbc\xa9\xe6\x95\xb0\xe9\x87\x8f \xc2\xa7b\xc2\xa7o64\xc2\xa7r',
-                           'extraId': '{"itemId": 241, "count": 64, "modItemId": "", "enchantData": [], "durability": 0, "customTips": "", "extraId": "", "modId": "", "userData": null, "isDiggerItem": false, "itemName": "minecraft:stained_glass", "auxValue": 10, "showInHand": true}',
-                           'modId': '', 'userData': None, 'isDiggerItem': False, 'itemName': 'minecraft:stained_glass',
-                           'auxValue': 10, 'showInHand': True}, 'to_item': None, 'to_slot': 6,
-             'player_id': '-38654705663', 'block_pos': (3057, 67, -14), 'take_percent': 1, 'dimension': 0,
-             'from_item_detail_text': '\xc2\xa7f\xe7\xb4\xab\xe8\x89\xb2\xe7\x8e\xbb\xe7\x92\x83\xc2\xa7r\n\xc2\xa79\xc2\xa79\xe5\xbb\xba\xe7\xad\x91\xc2\xa7r\xc2\xa7r\xc2\xa7r\xc2\xa7r'}
         from_slot = args["from_slot"]
         to_slot = args["to_slot"]
         from_path = self.slot_to_path[from_slot]
@@ -414,15 +407,21 @@ class BaseCustomContainerUIScreen(BaseUI):
             label2_name_ctrl.SetText(item_name_text)
             # 设置物品数量显示
 
-            if not from_item['extraId']:
-                # 未压缩的物品 ===》放入框
-                item_count_text = str(from_item['count'])
-            else:
-                #  压缩过物品 ===》放入框
-                extra_id_dict = json.loads(from_item['extraId'])
-                print '0000000000 extra_id_dict =', extra_id_dict
-                item_count_text = str(extra_id_dict['count'])
-                print '0000000001 item_count_text =', item_count_text
+            # if not from_item['extraId']:
+            #     # 未压缩的物品 ===》放入框
+            #     item_count_text = str(from_item['count'])
+            # else:
+            #     #  压缩过物品 ===》放入框
+            #     extra_id_dict = json.loads(from_item['extraId'])
+            #     print '0000000000 extra_id_dict =', extra_id_dict
+            #     item_count_text = str(extra_id_dict['compress_count'])
+            #     print '0000000001 item_count_text =', item_count_text
+
+            #  压缩过和未压缩的 ===》放入框（均通过存入extraId中的compress_count进行压缩数量显示）
+            extra_id_dict = json.loads(from_item['extraId'])
+            print '0000000000 extra_id_dict =', extra_id_dict
+            item_count_text = str(extra_id_dict['compress_count'])
+            print '0000000001 item_count_text =', item_count_text
             label1_count_ctrl.SetText(item_count_text)
             label2_count_ctrl.SetText(item_count_text)
 
