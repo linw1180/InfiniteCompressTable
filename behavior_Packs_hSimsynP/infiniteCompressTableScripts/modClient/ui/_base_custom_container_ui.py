@@ -127,6 +127,18 @@ class BaseCustomContainerUIScreen(BaseUI):
         if not self.last_selected_path:
             print "there is no last selected button, swap failed!!!"
             return
+        from_item = self.get_item_by_path(self.last_selected_path)
+        to_item = self.get_item_by_path(button_path)
+        if from_item:
+            from_item_detail_text = get_item_formatted_hover_text(from_item["itemName"], from_item["auxValue"], True,
+                                                                  from_item.get("userData"))
+        else:
+            from_item_detail_text = ''
+        if to_item:
+            to_item_detail_text = get_item_formatted_hover_text(to_item["itemName"], to_item["auxValue"], True,
+                                                                to_item.get("userData"))
+        else:
+            to_item_detail_text = ''
         notify_to_server('OnItemSwapClientEvent', {
             "block_name": self.block_name,
             "from_slot": self.get_slot_by_path(self.last_selected_path),
@@ -136,7 +148,9 @@ class BaseCustomContainerUIScreen(BaseUI):
             "to_item": self.get_item_by_path(button_path),
             "block_pos": self.block_pos,
             "dimension": self.dimension,
-            "take_percent": self.take_percent
+            "take_percent": self.take_percent,
+            "from_item_detail_text": from_item_detail_text,
+            "to_item_detail_text": to_item_detail_text
         })
         self.container_state_machine.reset_to_default()
 
@@ -160,7 +174,9 @@ class BaseCustomContainerUIScreen(BaseUI):
         return self.item_detail_alpha
 
     def show_item_detail(self, item):
+        print '====================================== 222 item =', item
         detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"], True, item.get("userData"))
+        print '-------------------------------------- 333 detail = ', detail_text
         self.GetBaseUIControl(self.item_detail_text_path).asLabel().SetText(detail_text)
         self.item_detail_alpha = 2.0
 
@@ -342,6 +358,15 @@ class BaseCustomContainerUIScreen(BaseUI):
     # 交换物品
     def swap_item(self, args):
         print '========= client base_ui ====> swap_item() =========== args =', args
+
+        a = {'to_item_detail_text': '', 'from_slot': 'output_slot', 'block_name': 'xl:block_compress_table',
+             'from_item': {'itemId': 241, 'count': 1, 'modItemId': '', 'enchantData': [], 'durability': 0,
+                           'customTips': '\xc2\xa7f\xe7\xb4\xab\xe8\x89\xb2\xe7\x8e\xbb\xe7\x92\x83\xc2\xa7r\n\xc2\xa79\xc2\xa79\xe5\xbb\xba\xe7\xad\x91\xc2\xa7r\xc2\xa7r\xc2\xa7r\xc2\xa7r\n\xe5\xb7\xb2\xe5\x8e\x8b\xe7\xbc\xa9\xe6\x95\xb0\xe9\x87\x8f \xc2\xa7b\xc2\xa7o64\xc2\xa7r',
+                           'extraId': '{"itemId": 241, "count": 64, "modItemId": "", "enchantData": [], "durability": 0, "customTips": "", "extraId": "", "modId": "", "userData": null, "isDiggerItem": false, "itemName": "minecraft:stained_glass", "auxValue": 10, "showInHand": true}',
+                           'modId': '', 'userData': None, 'isDiggerItem': False, 'itemName': 'minecraft:stained_glass',
+                           'auxValue': 10, 'showInHand': True}, 'to_item': None, 'to_slot': 6,
+             'player_id': '-38654705663', 'block_pos': (3057, 67, -14), 'take_percent': 1, 'dimension': 0,
+             'from_item_detail_text': '\xc2\xa7f\xe7\xb4\xab\xe8\x89\xb2\xe7\x8e\xbb\xe7\x92\x83\xc2\xa7r\n\xc2\xa79\xc2\xa79\xe5\xbb\xba\xe7\xad\x91\xc2\xa7r\xc2\xa7r\xc2\xa7r\xc2\xa7r'}
         from_slot = args["from_slot"]
         to_slot = args["to_slot"]
         from_path = self.slot_to_path[from_slot]
@@ -396,7 +421,8 @@ class BaseCustomContainerUIScreen(BaseUI):
                 #  压缩过物品 ===》放入框
                 extra_id_dict = json.loads(from_item['extraId'])
                 print '0000000000 extra_id_dict =', extra_id_dict
-                item_count_text = str(extra_id_dict['compress_count'])
+                item_count_text = str(extra_id_dict['count'])
+                print '0000000001 item_count_text =', item_count_text
             label1_count_ctrl.SetText(item_count_text)
             label2_count_ctrl.SetText(item_count_text)
 
