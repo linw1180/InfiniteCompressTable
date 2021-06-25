@@ -228,6 +228,9 @@ class CompressTable(Block):
                     # 处理：已压缩物品放入
                     from_item['count'] = 1
                     from_item['customTips'] = ''
+                    # 已压缩物品需要同时处理 customTips 和 userData
+                    from_item['userData'] = None
+                    print '55555555555555555 from_item =', from_item
 
                 # 处理背包数据，清空指定槽位物品
                 set_player_inv_item_num(player_id, from_slot, 0)
