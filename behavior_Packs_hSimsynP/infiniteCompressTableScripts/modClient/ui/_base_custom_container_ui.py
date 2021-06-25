@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+
 import mod.client.extraClientApi as clientApi
 from mod.common.minecraftEnum import TouchEvent
 
@@ -392,7 +394,9 @@ class BaseCustomContainerUIScreen(BaseUI):
                 item_count_text = str(from_item['count'])
             else:
                 #  压缩过物品 ===》放入框
-                item_count_text = str(from_item['extraId']['new_count'])
+                extra_id_dict = json.loads(from_item['extraId'])
+                print '0000000000 extra_id_dict =', extra_id_dict
+                item_count_text = str(extra_id_dict['compress_count'])
             label1_count_ctrl.SetText(item_count_text)
             label2_count_ctrl.SetText(item_count_text)
 
