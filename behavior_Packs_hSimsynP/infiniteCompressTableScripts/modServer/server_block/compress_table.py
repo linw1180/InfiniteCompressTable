@@ -68,14 +68,29 @@ class CompressTable(Block):
         if isinstance(to_slot, int) and to_item:
             return False
 
-        # 背包到放入框
+        # 背包 ===》放入框
         if isinstance(from_slot, int) and to_slot == 'input_slot':
+
             # 只支持一键放入，不支持分堆
             if take_percent < 1:
                 return False
-            # 当两个物品不一样，而且放入框中还有物品时（不允许交换，因为放入框物品数可能非常多）
-            if not item_utils.is_same_item(from_item, to_item) and to_item:
-                return False
+
+            # 当背包槽和放入框中均有物品，而且两个物品不一样时，不允许交换
+            # 判断思路：根据默认count=1的原始物品信息字典是否相同来判断
+            if from_item and to_item and from_item['extraId']:  # 背包槽物品已压缩
+                from_item_dict = json.loads(from_item['extraId'])
+                to_item_dict = json.loads(to_item['extraId'])
+                if from_item_dict['item_dict'] != to_item_dict['item_dict']:
+                    return False
+
+            # 当背包槽和放入框中均有物品，而且两个物品不一样时，不允许交换
+            # 判断思路：根据默认count=1的原始物品信息字典是否相同来判断
+            if from_item and to_item and not from_item['extraId']:  # 背包槽物品未压缩
+                temp_item = copy.deepcopy(from_item)
+                temp_item['count'] = 1
+                to_item_dict = json.loads(to_item['extraId'])
+                if temp_item != to_item_dict['item_dict']:
+                    return False
 
         # 压缩台暂时不支持分堆操作
         # if take_percent < 1 and not to_item:
@@ -90,72 +105,6 @@ class CompressTable(Block):
         #         spawn_item_to_player_inv(to_item, player_id, to_slot)
         #     if isinstance(from_slot, int):
         #         spawn_item_to_player_inv(from_item, player_id, from_slot)
-
-        # 背包 ===》放入框 槽位
-        # 两个槽位物品相同时处理堆叠（只对从背包到放入框起作用，因为放入框不允许取出到有物品的槽位）
-        if item_utils.is_same_item(from_item, to_item):
-            basic_info = get_item_basic_info(to_item.get("itemName"), to_item.get("auxValue"))
-            if not basic_info:
-                return
-            # max_size = basic_info.get("maxStackSize")
-            take_num = int(from_item.get("count") * take_percent)
-            from_num = from_item.get("count")
-            to_num = to_item.get("count")
-            if not take_num and not to_num:
-                return
-            # if to_num == max_size:
-            #     return
-            # if to_num + take_num >= max_size:
-            #     from_num -= max_size - to_num
-            #     to_num = max_size
-            # else:
-            #     to_num += take_num
-            #     from_num -= take_num
-
-            all_count = to_num + from_num
-            to_num = all_count
-            from_num = 0
-
-            from_item["count"] = to_num
-            to_item["count"] = from_num
-            if from_num == 0:
-                to_item = None
-            if isinstance(from_slot, int):
-                set_player_inv_item_num(player_id, from_slot, from_num)
-            if isinstance(to_slot, int):
-                # 此处需要处理两种情况
-                # 当未压缩数小于64和未压缩数大于64
-                # set_player_inv_item_num(player_id, to_slot, 1)
-                pass
-
-        # 只对从背包到放入框起作用
-        # if item_utils.is_same_item(from_item, to_item):
-        #     # 两个槽物品相同时处理堆叠
-        #     basic_info = get_item_basic_info(to_item.get("itemName"), to_item.get("auxValue"))
-        #     if not basic_info:
-        #         return
-        #     max_size = basic_info.get("maxStackSize")
-        #     take_num = int(from_item.get("count") * take_percent)
-        #     from_num = from_item.get("count")
-        #     to_num = to_item.get("count")
-        #     if not take_num and not to_num:
-        #         return
-        #     if to_num == max_size:
-        #         return
-        #     if to_num + take_num >= max_size:
-        #         from_num -= max_size - to_num
-        #         to_num = max_size
-        #     else:
-        #         to_num += take_num
-        #         from_num -= take_num
-        #     from_item["count"] = to_num
-        #     to_item["count"] = from_num
-        #     if from_num == 0:
-        #         to_item = None
-        #     if isinstance(from_slot, int):
-        #         set_player_inv_item_num(player_id, from_slot, from_num)
-        #     if isinstance(to_slot, int):
-        #         set_player_inv_item_num(player_id, to_slot, to_num)
 
         # ------------------------ 下面必须实时处理背包内的数据（增加，减少，归零等...） --------------------------
 
@@ -207,11 +156,15 @@ class CompressTable(Block):
 
         # 背包 ==》放入框
         elif isinstance(from_slot, int) and to_slot == 'input_slot':
+            print 'aaaaaaaaaaaaaaaaaa take_percent =', take_percent
+            print 'bbbbbbbbbbbbbbbbbb to_item =', to_item
+            print 'cccccccccccccccccc from_item_extra_id =', from_item['extraId']
             # 当放入框中没有物品时
             if take_percent == 1 and not to_item:
 
                 if not from_item['extraId']:
                     # 处理：未压缩物品放入
+                    # 处理思路：将待压缩数量和原始物品字典存入到extraId中，count默认均设置为1
                     temp_item = copy.deepcopy(from_item)
                     compress_count = temp_item['count']
 
@@ -223,17 +176,86 @@ class CompressTable(Block):
                     str_extra_id = json.dumps(data)
                     # extraId存储数据类型必须为字符串
                     from_item['extraId'] = str_extra_id
-                    print '44444444444444444 from_item =', from_item
                 else:
                     # 处理：已压缩物品放入
+                    # 思路：count设置为1、customTips设置为空、userData设置为None
                     from_item['count'] = 1
                     from_item['customTips'] = ''
                     # 已压缩物品需要同时处理 customTips 和 userData
                     from_item['userData'] = None
-                    print '55555555555555555 from_item =', from_item
 
                 # 处理背包数据，清空指定槽位物品
                 set_player_inv_item_num(player_id, from_slot, 0)
+
+            # 当放入框中有物品，并且和背包槽物品相同时，处理堆叠
+            # 处理思路：物品是否相同主要根据count=1的物品信息字典是否相同来判断
+            elif take_percent == 1 and to_item and (not from_item['extraId']):  # 背包槽为未压缩物品
+                t_item = copy.deepcopy(from_item)
+                t_item['count'] = 1
+                item_dict_obj = json.loads(to_item['extraId'])
+                print '11111111111111111111'
+                print t_item
+                print item_dict_obj['item_dict']
+                if t_item == item_dict_obj['item_dict']:  # 未压缩物品和放入框物品相同
+                    compress_count = from_item['count'] + item_dict_obj['compress_count']
+                    from_item['count'] = 1
+                    from_item['customTips'] = ''
+                    data = {'item_dict': t_item, 'compress_count': compress_count}
+                    str_extra_id = json.dumps(data)
+                    from_item['extraId'] = str_extra_id
+                    to_item = None
+                    set_player_inv_item_num(player_id, from_slot, 0)
+
+            # 当放入框中有物品，并且和背包槽物品相同时，处理堆叠
+            # 处理思路：物品是否相同主要根据count=1的物品信息字典是否相同来判断
+            elif take_percent == 1 and to_item and from_item['extraId']:  # 背包槽为已压缩物品
+                from_item_dict = json.loads(from_item['extraId'])
+                to_item_dict = json.loads(to_item['extraId'])
+                new_compress_count = from_item_dict['compress_count'] + to_item_dict['compress_count']
+
+                from_item['count'] = 1
+                from_item['customTips'] = ''
+                from_item['userData'] = None
+                new_extra_id = {'item_dict': from_item_dict['item_dict'], 'compress_count': new_compress_count}
+                str_extra_id = json.dumps(new_extra_id)
+                from_item['extraId'] = str_extra_id
+                to_item = None
+                set_player_inv_item_num(player_id, from_slot, 0)
+
+            # if item_utils.is_same_item(from_item, to_item):
+            #     basic_info = get_item_basic_info(to_item.get("itemName"), to_item.get("auxValue"))
+            #     if not basic_info:
+            #         return
+            #     # max_size = basic_info.get("maxStackSize")
+            #     take_num = int(from_item.get("count") * take_percent)
+            #     from_num = from_item.get("count")
+            #     to_num = to_item.get("count")
+            #     if not take_num and not to_num:
+            #         return
+            #     # if to_num == max_size:
+            #     #     return
+            #     # if to_num + take_num >= max_size:
+            #     #     from_num -= max_size - to_num
+            #     #     to_num = max_size
+            #     # else:
+            #     #     to_num += take_num
+            #     #     from_num -= take_num
+            #
+            #     all_count = to_num + from_num
+            #     to_num = all_count
+            #     from_num = 0
+            #
+            #     from_item["count"] = to_num
+            #     to_item["count"] = from_num
+            #     if from_num == 0:
+            #         to_item = None
+            #     if isinstance(from_slot, int):
+            #         set_player_inv_item_num(player_id, from_slot, from_num)
+            #     if isinstance(to_slot, int):
+            #         # 此处需要处理两种情况
+            #         # 当未压缩数小于64和未压缩数大于64
+            #         # set_player_inv_item_num(player_id, to_slot, 1)
+            #         pass
 
         # 放入框 ==》背包
         elif isinstance(from_slot, str) and from_slot == 'input_slot':
