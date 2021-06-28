@@ -132,7 +132,6 @@ class BaseCustomContainerUIScreen(BaseUI):
         if from_item:
             from_item_detail_text = get_item_formatted_hover_text(from_item["itemName"], from_item["auxValue"], True,
                                                                   from_item.get("userData"))
-            print '---------------------------------------------- from_item_detail_text =', from_item_detail_text
         else:
             from_item_detail_text = ''
         if to_item:
