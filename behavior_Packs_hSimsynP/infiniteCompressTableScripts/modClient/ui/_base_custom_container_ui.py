@@ -189,6 +189,7 @@ class BaseCustomContainerUIScreen(BaseUI):
 
     # 网格按钮点击回调函数
     def on_item_btn_touch(self, args):
+        print '----------------------------------------------------'
         touch_event = args["TouchEvent"]
         touch_pos = args["TouchPosX"], args["TouchPosY"]
         # 触控在按钮范围内弹起时
