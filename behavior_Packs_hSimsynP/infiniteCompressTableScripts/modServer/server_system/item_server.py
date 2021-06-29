@@ -9,7 +9,6 @@ from infiniteCompressTableScripts.modServer.server_system import block_server
 
 
 def on_item_swap(args):
-    print '------------------- server ---> on_item_swap --------------------- args =', args
     player_id = args['player_id']
     block_name = args['block_name']
     from_slot = args['from_slot']
@@ -29,13 +28,10 @@ def on_item_swap(args):
 
     # 背包内部交换
     else:
-        print '---------------------- server ---> in bag exchange ------------------------'
         if isinstance(to_slot, int):
             to_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
-            print '................. server ..................... to_item =', to_item
         if isinstance(from_slot, int):
             from_item = get_player_item(player_id, ItemPosType.INVENTORY, from_slot, True)
-            print '.................. server .................... from_item =', from_item
 
         if item_utils.is_same_item(from_item, to_item):
             # 两个槽物品相同时处理堆叠

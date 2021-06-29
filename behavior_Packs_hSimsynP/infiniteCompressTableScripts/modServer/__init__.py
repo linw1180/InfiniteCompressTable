@@ -23,7 +23,8 @@ class InfiniteCompressTableServerSystem(ServerSystem):
 
         # 注册服务端引擎事件监听
         for event_name, instance, function in [
-            ["ServerBlockUseEvent", block_server, block_server.player_use_block]
+            ["ServerBlockUseEvent", block_server, block_server.player_use_block],
+            ["ServerItemUseOnEvent", block_server, block_server.use_item_on_block],
         ]:
             self.ListenForEvent(Namespace, SystemName, event_name, instance, function)
 

@@ -5,6 +5,7 @@ import mod.client.extraClientApi as clientApi
 from mod.common.minecraftEnum import TouchEvent
 
 from ._base_ui import BaseUI
+from .. import get_ui_manager
 from ..api import get_item_basic_info, get_item_formatted_hover_text, notify_to_server, local_player, \
     get_item_hover_name
 from ..utils.container_interaction_state_utils import ButtonEventType, NodeId, ContainerInteractionStateMachine
@@ -65,6 +66,8 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.label2_name = '/pe_kuang_image/label2_name'
         self.label2_count = '/pe_kuang_image/label2_count'
 
+        self.btn_exit = '/bg_panel/bg/btn_exit'  # 套用
+
         # endregion
 
         # region 管理背包数据及各个槽位对应的路径
@@ -107,6 +110,36 @@ class BaseCustomContainerUIScreen(BaseUI):
     def on_ui_create(self):
         self.AddTouchEventHandler(self.from_item_button_path, self.on_item_btn_touch, {"isSwallow": True})
         self.AddTouchEventHandler(self.to_item_button_path, self.on_item_btn_touch, {"isSwallow": True})
+        self.AddTouchEventHandler(self.btn_exit, self.close, {"isSwallow": True})
+
+    def close(self, args):
+        if args['TouchEvent'] == TouchEvent.TouchUp:
+            item = self.get_item_by_path(self.from_item_button_path)
+
+            if item:
+                for i in xrange(1, 36):
+                    path = '/main_panel/inv_grid/item_btn' + str(i)
+                    m_item = self.get_item_by_path(path)
+                    if m_item:
+                        continue
+                    to_slot = i
+                    break
+                from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
+                                                                      True,
+                                                                      item.get("userData"))
+                notify_to_server('OnItemSwapClientEvent', {
+                    "block_name": self.block_name,
+                    "from_slot": 'input_slot',
+                    "to_slot": to_slot,
+                    "player_id": local_player,
+                    "from_item": item,
+                    "to_item": None,
+                    "block_pos": self.block_pos,
+                    "dimension": self.dimension,
+                    "take_percent": self.take_percent,
+                    "from_item_detail_text": from_item_detail_text,
+                })
+            get_ui_manager().pop_ui()
 
     # 注册网格中的按钮
     def register_item_btn_event(self, item_btn_path):
@@ -121,9 +154,6 @@ class BaseCustomContainerUIScreen(BaseUI):
         pass
 
     def handle_swap(self, button_path):
-        print '====== client base_ui ==> handle_swap ========'
-        print '-------------------------------------- button_path =', button_path
-        print '-------------------------------------- last_selected_path =', self.last_selected_path
         if not self.last_selected_path:
             print "there is no last selected button, swap failed!!!"
             return
@@ -174,9 +204,7 @@ class BaseCustomContainerUIScreen(BaseUI):
         return self.item_detail_alpha
 
     def show_item_detail(self, item):
-        print '====================================== 222 item =', item
         detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"], True, item.get("userData"))
-        print '-------------------------------------- 333 detail = ', detail_text
         self.GetBaseUIControl(self.item_detail_text_path).asLabel().SetText(detail_text)
         self.item_detail_alpha = 2.0
 
@@ -189,7 +217,6 @@ class BaseCustomContainerUIScreen(BaseUI):
 
     # 网格按钮点击回调函数
     def on_item_btn_touch(self, args):
-        print '----------------------------------------------------'
         touch_event = args["TouchEvent"]
         touch_pos = args["TouchPosX"], args["TouchPosY"]
         # 触控在按钮范围内弹起时
@@ -277,7 +304,6 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.container_state_machine.reset_to_default()
 
     def handle_coalesce(self, button_path):
-        print '================ handle_coalesce ===================='
         if isinstance(self.get_slot_by_path(button_path), str):
             # 非背包栏位禁止合堆
             self.container_state_machine.reset_to_default()
@@ -296,26 +322,6 @@ class BaseCustomContainerUIScreen(BaseUI):
                         self.handle_swap(button_path)
         self.GetBaseUIControl(button_path + "/img_selected").SetVisible(False)
         self.container_state_machine.reset_to_default()
-
-    # def OnCloseClick(self, args):
-    #     touchEventEnum = clientApi.GetMinecraftEnum().TouchEvent
-    #     touchEvent = args["TouchEvent"]
-    #     if touchEvent == touchEventEnum.TouchDown:
-    #         eventData = apiUtil.GetModClientSystem().CreateEventData()
-    #         eventData["playerId"] = apiUtil.GetModClientSystem().GetPlayerId()
-    #         notify_to_server(modConfig.CloseCustomFurnaceEvent, eventData)
-    #         gameComp = compFactory.CreateGame(clientApi.GetLevelId())
-    #         # 延迟0.1秒帧执行，防止刚关闭又触发使用再次打开界面
-    #         gameComp.AddTimer(0.1, self.CloseUI)
-
-    # def OnDropClick(self, args):
-    #     touchEventEnum = clientApi.GetMinecraftEnum().TouchEvent
-    #     touchEvent = args["TouchEvent"]
-    #     if touchEvent == touchEventEnum.TouchDown:
-    #         self.container_state_machine.receive_event(args["ButtonPath"], ButtonEventType.Clicked)
-
-    # def CloseUI(self):
-    #     self.HideUI()
 
     def get_bag_item_position(self, item_path):
         """计算背包控件相对于main_panel的位置，用于飞行动画"""
@@ -358,7 +364,6 @@ class BaseCustomContainerUIScreen(BaseUI):
 
     # 交换物品
     def swap_item(self, args):
-        print '========= client base_ui ====> swap_item() =========== args =', args
 
         from_slot = args["from_slot"]
         to_slot = args["to_slot"]
@@ -407,21 +412,9 @@ class BaseCustomContainerUIScreen(BaseUI):
             label2_name_ctrl.SetText(item_name_text)
             # 设置物品数量显示
 
-            # if not from_item['extraId']:
-            #     # 未压缩的物品 ===》放入框
-            #     item_count_text = str(from_item['count'])
-            # else:
-            #     #  压缩过物品 ===》放入框
-            #     extra_id_dict = json.loads(from_item['extraId'])
-            #     print '0000000000 extra_id_dict =', extra_id_dict
-            #     item_count_text = str(extra_id_dict['compress_count'])
-            #     print '0000000001 item_count_text =', item_count_text
-
             #  压缩过和未压缩的 ===》放入框（均通过存入extraId中的compress_count进行压缩数量显示）
             extra_id_dict = json.loads(from_item['extraId'])
-            print '0000000000 extra_id_dict =', extra_id_dict
             item_count_text = str(extra_id_dict['compress_count'])
-            print '0000000001 item_count_text =', item_count_text
             label1_count_ctrl.SetText(item_count_text)
             label2_count_ctrl.SetText(item_count_text)
 
