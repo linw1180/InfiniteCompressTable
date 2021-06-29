@@ -9,7 +9,7 @@ from infiniteCompressTableScripts.modServer.api import notify_to_client, add_tim
 from infiniteCompressTableScripts.modServer.server_block._block import Block
 
 
-class CompressTable(Block):
+class LimitedCompressTable(Block):  # TODO 内容待修改
 
     @classmethod
     def player_use_block(cls, args):

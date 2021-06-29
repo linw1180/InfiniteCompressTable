@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from infiniteCompressTableScripts.modCommon.config.block_config import BlockEnum
 from infiniteCompressTableScripts.modServer.server_block.compress_table import CompressTable
+from infiniteCompressTableScripts.modServer.server_block.limited_compress_table import LimitedCompressTable
 
 BLOCK_SERVER_MAPPING = {
-    BlockEnum.COMPRESS_TABLE: CompressTable
+    BlockEnum.COMPRESS_TABLE: CompressTable,
+    BlockEnum.LIMITED_COMPRESS_TABLE: LimitedCompressTable
 }
 
 

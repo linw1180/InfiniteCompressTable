@@ -1,6 +1,8 @@
 {
-    "ui_defs": [
-        "ui/infinite_compress_table_base_ui.json",
-        "ui/infinite_compress_table_ui.json"
-    ]
+  "ui_defs": [
+    "ui/infinite_compress_table_base_ui.json",
+    "ui/infinite_compress_table_ui.json",
+    "ui/limited_compress_table_base_ui.json",
+    "ui/limited_compress_table_ui.json"
+  ]
 }
