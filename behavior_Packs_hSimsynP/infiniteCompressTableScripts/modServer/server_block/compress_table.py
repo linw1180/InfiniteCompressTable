@@ -6,317 +6,446 @@ from mod.common.minecraftEnum import ItemPosType
 
 from infiniteCompressTableScripts.modCommon.utils import item_utils
 from infiniteCompressTableScripts.modServer.api import notify_to_client, add_timer, get_player_all_items, \
-    spawn_item_to_player_inv, get_player_item, set_player_inv_item_num, get_item_basic_info
+	spawn_item_to_player_inv, get_player_item, set_player_inv_item_num, get_item_basic_info
 from infiniteCompressTableScripts.modServer.server_block._block import Block
 
 
 class CompressTable(Block):
 
-    @classmethod
-    def player_use_block(cls, args):
-        player_id = args['playerId']
-        block_name = args['blockName']
-        pos = (args['x'], args['y'], args['z'])
-        dimension = args['dimensionId']
+	@classmethod
+	def player_use_block(cls, args):
+		player_id = args['playerId']
+		block_name = args['blockName']
+		pos = (args['x'], args['y'], args['z'])
+		dimension = args['dimensionId']
 
-        if not player_id:
-            return
+		if not player_id:
+			return
 
-        # 打开UI
-        notify_to_client(player_id, 'OpenBlockUI', {
-            "block_name": block_name,
-            "pos": pos,
-            "dimension": dimension,
-            # "equipped_items": player.equipped_items.items,
-            # "eu": block_entity_data['eu'],
-        })
-        add_timer(0.1, cls.update_inventory_ui, player_id, block_name)
+		# 打开UI
+		notify_to_client(player_id, 'OpenBlockUI', {
+			"block_name": block_name,
+			"pos": pos,
+			"dimension": dimension,
+			# "equipped_items": player.equipped_items.items,
+			# "eu": block_entity_data['eu'],
+		})
+		add_timer(0.1, cls.update_inventory_ui, player_id, block_name)
 
-    @staticmethod
-    def update_inventory_ui(player_id, block_name):
-        inv_items = get_player_all_items(player_id, ItemPosType.INVENTORY, True)
-        notify_to_client(player_id, 'UpdateBlockUI', {
-            'block_name': block_name,
-            'inventory': inv_items,
-        })
+	@staticmethod
+	def update_inventory_ui(player_id, block_name):
+		inv_items = get_player_all_items(player_id, ItemPosType.INVENTORY, True)
+		notify_to_client(player_id, 'UpdateBlockUI', {
+			'block_name': block_name,
+			'inventory': inv_items,
+		})
 
-    @classmethod
-    def on_custom_container_item_swap(cls, args):
-        print '========= server ===> on_custom_container_item_swap ========= args =', args
-        player_id = args['player_id']
-        block_name = args['block_name']
-        from_slot = args['from_slot']
-        to_slot = args['to_slot']
-        from_item = args['from_item']
-        to_item = args['to_item']
-        take_percent = args['take_percent']
-        from_item_detail_text = args['from_item_detail_text']
+	@classmethod
+	def on_custom_container_item_swap(cls, args):
+		print '========= server ===> on_custom_container_item_swap ========= args =', args
+		player_id = args['player_id']
+		block_name = args['block_name']
+		from_slot = args['from_slot']
+		to_slot = args['to_slot']
+		from_item = args['from_item']
+		to_item = args['to_item']
+		take_percent = args['take_percent']
+		from_item_detail_text = args['from_item_detail_text']
 
-        # 存储放入框到背包物品中已压缩和未压缩的物品数量
-        # count_data = {'no_compress_count': 0, 'have_compress_count': []}
+		# 执行到此处说明此次交换必定有一个自定义槽位存在
+		# 因为自定义槽位名是str，背包槽位名是int所以做如下判断
 
-        # 执行到此处说明此次交换必定有一个自定义槽位存在
-        # 因为自定义槽位名是str，背包槽位名是int所以做如下判断
+		# 输出框不允许放入操作
+		if isinstance(to_slot, str) and to_slot == 'output_slot':
+			return False
 
-        # 输出框不允许放入操作
-        if isinstance(to_slot, str) and to_slot == 'output_slot':
-            return False
+		# 两个自定义槽位之间不允许交换
+		if isinstance(from_slot, str) and isinstance(to_slot, str):
+			return False
 
-        # 两个自定义槽位之间不允许交换
-        if isinstance(from_slot, str) and isinstance(to_slot, str):
-            return False
+		# 从放入框和输出框中取，不允许取出到有物品的背包槽位（因为取出数量非常可能超过64）
+		if isinstance(to_slot, int) and to_item:
+			return False
 
-        # 从放入框和输出框中取，不允许取出到有物品的背包槽位（因为取出数量非常可能超过64）
-        if isinstance(to_slot, int) and to_item:
-            return False
+		# 背包 ===》放入框
+		if isinstance(from_slot, int) and to_slot == 'input_slot':
 
-        # 背包 ===》放入框
-        if isinstance(from_slot, int) and to_slot == 'input_slot':
+			# 只支持一键放入，不支持分堆
+			if take_percent < 1:
+				return False
 
-            # 只支持一键放入，不支持分堆
-            if take_percent < 1:
-                return False
+			# 当背包槽和放入框中均有物品，而且两个物品不一样时，不允许交换
+			# 判断思路：根据默认count=1的原始物品信息字典是否相同来判断
+			if from_item and to_item and from_item['extraId']:  # 背包槽物品已压缩
+				m_from_item_dict = json.loads(from_item['extraId'])
+				m_to_item_dict = json.loads(to_item['extraId'])
+				if m_from_item_dict['item_dict'] != m_to_item_dict['item_dict']:
+					return False
 
-            # 当背包槽和放入框中均有物品，而且两个物品不一样时，不允许交换
-            # 判断思路：根据默认count=1的原始物品信息字典是否相同来判断
-            if from_item and to_item and from_item['extraId']:  # 背包槽物品已压缩
-                from_item_dict = json.loads(from_item['extraId'])
-                to_item_dict = json.loads(to_item['extraId'])
-                if from_item_dict['item_dict'] != to_item_dict['item_dict']:
-                    return False
+			# 当背包槽和放入框中均有物品，而且两个物品不一样时，不允许交换
+			# 判断思路：根据默认count=1的原始物品信息字典是否相同来判断
+			if from_item and to_item and not from_item['extraId']:  # 背包槽物品未压缩
+				n_temp_item = copy.deepcopy(from_item)
+				n_temp_item['count'] = 1
+				n_to_item_dict = json.loads(to_item['extraId'])
+				if n_temp_item != n_to_item_dict['item_dict']:
+					return False
 
-            # 当背包槽和放入框中均有物品，而且两个物品不一样时，不允许交换
-            # 判断思路：根据默认count=1的原始物品信息字典是否相同来判断
-            if from_item and to_item and not from_item['extraId']:  # 背包槽物品未压缩
-                temp_item = copy.deepcopy(from_item)
-                temp_item['count'] = 1
-                to_item_dict = json.loads(to_item['extraId'])
-                if temp_item != to_item_dict['item_dict']:
-                    return False
+		# 压缩台暂时不支持分堆操作
+		# if take_percent < 1 and not to_item:
+		#     # 简单处理分堆
+		#     to_num = int(from_item.get("count") * take_percent)
+		#     from_num = int(from_item.get("count")) - to_num
+		#     from_item["count"] = to_num
+		#     import copy
+		#     to_item = copy.deepcopy(from_item)
+		#     to_item["count"] = from_num
+		#     if isinstance(to_slot, int):
+		#         spawn_item_to_player_inv(to_item, player_id, to_slot)
+		#     if isinstance(from_slot, int):
+		#         spawn_item_to_player_inv(from_item, player_id, from_slot)
 
-        # 压缩台暂时不支持分堆操作
-        # if take_percent < 1 and not to_item:
-        #     # 简单处理分堆
-        #     to_num = int(from_item.get("count") * take_percent)
-        #     from_num = int(from_item.get("count")) - to_num
-        #     from_item["count"] = to_num
-        #     import copy
-        #     to_item = copy.deepcopy(from_item)
-        #     to_item["count"] = from_num
-        #     if isinstance(to_slot, int):
-        #         spawn_item_to_player_inv(to_item, player_id, to_slot)
-        #     if isinstance(from_slot, int):
-        #         spawn_item_to_player_inv(from_item, player_id, from_slot)
+		# ------------------------ 下面必须实时处理背包内的数据（增加，减少，归零等...） --------------------------
 
-        # ------------------------ 下面必须实时处理背包内的数据（增加，减少，归零等...） --------------------------
+		# 背包 ==》放入框
+		if isinstance(from_slot, int) and to_slot == 'input_slot':
+			# 当放入框中没有物品时
+			if take_percent == 1 and not to_item:
 
-        # 输出框 ==》背包（只存在直接取出的情况）
-        if from_slot == 'output_slot' and isinstance(to_slot, int):
-            if take_percent < 1:  # 不允许分堆取出
-                return False
-            if take_percent == 1 and not to_item:
-                # region 设置生成压缩物品的相关数据，主要设置 count tips extraId
-                # 最初from_item数据
-                from_item_copy = copy.deepcopy(from_item)
+				if not from_item['extraId']:
+					# 处理：未压缩物品放入
+					# 处理思路：将待压缩数量和原始物品字典存入到extraId中，count默认均设置为1
+					temp_item = copy.deepcopy(from_item)
+					compress_count = temp_item['count']
 
-                # json字符串 ==》python对象
-                data = json.loads(from_item['extraId'])
-                # 将存储在extraId中最原始的物品信息赋给from_item
-                from_item = data['item_dict']
-                from_item['count'] = 1
+					# 处理存入extraId中count_data中数据，放入框到背包生成物品使用
+					no_compress_count = 0
+					no_compress_count += compress_count
 
-                tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(data['compress_count']) + "§r"
-                from_item['customTips'] = tips
+					from_item['count'] = 1
+					temp_item['count'] = 1
 
-                from_item['extraId'] = from_item_copy['extraId']
+					data = {'item_dict': temp_item, 'compress_count': compress_count,
+							'count_data': {'no_compress_count': no_compress_count, 'have_compress_count': []}}
+					# python对象 --》json字符串
+					str_extra_id = json.dumps(data)
+					# extraId存储数据类型必须为字符串
+					from_item['extraId'] = str_extra_id
+				else:
+					# 处理：已压缩物品放入
+					# 思路：直接获取extraId中item_dict，将item_dict作为基础item，在其基础上，设置新的extraId
+					from_item_dict = json.loads(from_item['extraId'])
+					# 构建新的from_item
+					from_item = from_item_dict['item_dict']
+					# 初始化tips，主要是为了初始化之前已压缩过物品中存在的tips数据
+					from_item['customTips'] = ''
+					have_compress_count = [from_item_dict['compress_count']]
+					new_extra_id_dict = {'item_dict': from_item_dict['item_dict'],
+										 'compress_count': from_item_dict['compress_count'],
+										 'count_data': {'no_compress_count': 0,
+														'have_compress_count': have_compress_count}}
+					str_dict_data = json.dumps(new_extra_id_dict)
+					from_item['extraId'] = str_dict_data
 
-                spawn_item_to_player_inv(from_item, player_id, to_slot)
-                # 最新的物品数据传送到客户端进行交换
-                from_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
-                # endregion
+				# 处理背包数据，清空指定槽位物品
+				set_player_inv_item_num(player_id, from_slot, 0)
 
-        # 背包 ==》放入框
-        elif isinstance(from_slot, int) and to_slot == 'input_slot':
-            # 当放入框中没有物品时
-            if take_percent == 1 and not to_item:
+			# 背包槽为未压缩物品时，处理堆叠
+			# 当放入框中有物品，并且和背包槽物品相同时，处理堆叠
+			# 处理思路：物品是否相同主要根据count=1的物品信息字典是否相同来判断
+			elif take_percent == 1 and to_item and (not from_item['extraId']):
+				x_item = copy.deepcopy(from_item)
+				x_item['count'] = 1
+				to_item_extra_id = json.loads(to_item['extraId'])
 
-                if not from_item['extraId']:
-                    # 处理：未压缩物品放入
-                    # 处理思路：将待压缩数量和原始物品字典存入到extraId中，count默认均设置为1
-                    temp_item = copy.deepcopy(from_item)
-                    compress_count = temp_item['count']
+				# 未压缩物品和放入框物品相同
+				if x_item == to_item_extra_id['item_dict']:
+					new_compress_count = from_item['count'] + to_item_extra_id['compress_count']
+					temp_count = from_item['count']
+					from_item['count'] = 1
+					# 处理存入extraId中count_data中数据，放入框到背包生成物品使用
+					to_item_extra_id['count_data']['no_compress_count'] += temp_count
+					data = {'item_dict': to_item_extra_id['item_dict'], 'compress_count': new_compress_count,
+							'count_data': to_item_extra_id['count_data']}
+					str_extra_id = json.dumps(data)
+					from_item['extraId'] = str_extra_id
+					to_item = None  # FIXME 可能会导致后边有问题
+					set_player_inv_item_num(player_id, from_slot, 0)
 
-                    # 处理存入extraId中count_data中数据，放入框到背包生成物品使用
-                    no_compress_count = 0
-                    no_compress_count += compress_count
+			# 背包槽为已压缩物品时，处理堆叠
+			# 当放入框中有物品，并且和背包槽物品相同时，处理堆叠
+			# 处理思路：物品是否相同主要根据count=1的物品信息字典是否相同来判断
+			elif take_percent == 1 and to_item and from_item['extraId']:
+				# to_slot槽位待压缩物品比较数据
+				z_extra_id_dict = json.loads(to_item['extraId'])
+				z_item_check = z_extra_id_dict['item_dict']
+				# from_slot槽位压缩物品比较数据
+				y_extra_id_dict = json.loads(from_item['extraId'])
+				y_item_check = y_extra_id_dict['item_dict']
+				# 初始化压缩物品的extraId中item_dict中的tips数据，方便后续比较
+				y_item_check['customTips'] = ''
 
-                    from_item['count'] = 1
-                    temp_item['count'] = 1
+				# 此比较数据相同，则视为同一物品，可进行堆叠操作
+				if y_item_check == z_item_check:
+					from_item_dict = json.loads(from_item['extraId'])
+					to_item_dict = json.loads(to_item['extraId'])
+					new_compress_count = from_item_dict['compress_count'] + to_item_dict['compress_count']
 
-                    data = {'item_dict': temp_item, 'compress_count': compress_count,
-                            'count_data': {'no_compress_count': no_compress_count, 'have_compress_count': []}}
-                    # python对象 --》json字符串
-                    str_extra_id = json.dumps(data)
-                    # extraId存储数据类型必须为字符串
-                    from_item['extraId'] = str_extra_id
-                else:
-                    # 处理：已压缩物品放入
-                    # 思路：count设置为1、customTips设置为空、userData设置为None
-                    temp_item = copy.deepcopy(from_item)
-                    extra_id_dict = json.loads(temp_item['extraId'])
-                    from_item = extra_id_dict['item_dict']
+					# 处理存入extraId中count_data中数据，放入框到背包生成物品使用
+					to_item_dict['count_data']['have_compress_count'].append(from_item_dict['compress_count'])
 
-                    # 处理存入extraId中count_data中数据，放入框到背包生成物品使用
-                    have_compress_count = [extra_id_dict['compress_count']]
-                    data = {'item_dict': extra_id_dict['item_dict'], 'compress_count': extra_id_dict['compress_count'],
-                            'count_data': {'no_compress_count': 0, 'have_compress_count': have_compress_count}}
-                    str_data = json.dumps(data)
-                    from_item['extraId'] = str_data
+					# 构建新from_item
+					from_item = to_item_dict['item_dict']
+					new_extra_id = {'item_dict': to_item_dict['item_dict'], 'compress_count': new_compress_count,
+									'count_data': to_item_dict['count_data']}
+					str_extra_id = json.dumps(new_extra_id)
+					from_item['extraId'] = str_extra_id
+					to_item = None  # FIXME 可能会导致后边有问题
+					set_player_inv_item_num(player_id, from_slot, 0)
+					print '-----------success'
 
-                # 处理背包数据，清空指定槽位物品
-                set_player_inv_item_num(player_id, from_slot, 0)
+		# 输出框 ==》背包（只存在直接取出的情况）
+		elif from_slot == 'output_slot' and isinstance(to_slot, int):
+			if take_percent < 1:  # 不允许分堆取出
+				return False
+			if take_percent == 1 and not to_item:
+				# region 设置生成压缩物品的相关数据，主要设置 count tips extraId
 
-            # 当放入框中有物品，并且和背包槽物品相同时，处理堆叠
-            # 处理思路：物品是否相同主要根据count=1的物品信息字典是否相同来判断
-            elif take_percent == 1 and to_item and (not from_item['extraId']):  # 背包槽为未压缩物品
-                t_item = copy.deepcopy(from_item)
-                t_item['count'] = 1
-                item_dict_obj = json.loads(to_item['extraId'])
+				# json字符串 ==》python对象
+				data = json.loads(from_item['extraId'])
+				temp_item = data['item_dict']
+				# 将temp_item初始化成最原始的物品字典作为原始数据使用
+				temp_item['customTips'] = ''
+				# 将存储在extraId中最原始的物品信息赋给from_item
+				from_item = data['item_dict']
+				from_item['count'] = 1
 
-                if t_item == item_dict_obj['item_dict']:  # 未压缩物品和放入框物品相同
-                    compress_count = from_item['count'] + item_dict_obj['compress_count']
-                    temp_count = from_item['count']
-                    from_item['count'] = 1
-                    from_item['customTips'] = ''
-                    # 处理存入extraId中count_data中数据，放入框到背包生成物品使用
-                    item_dict_obj['count_data']['no_compress_count'] += temp_count
-                    data = {'item_dict': t_item, 'compress_count': compress_count,
-                            'count_data': item_dict_obj['count_data']}
+				tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(data['compress_count']) + "§r"
+				from_item['customTips'] = tips
 
-                    str_extra_id = json.dumps(data)
-                    from_item['extraId'] = str_extra_id
-                    to_item = None
-                    set_player_inv_item_num(player_id, from_slot, 0)
+				extra_id_dict = {'item_dict': temp_item,
+								 'compress_count': data['compress_count']}
+				str_extra_data = json.dumps(extra_id_dict)
+				from_item['extraId'] = str_extra_data
 
-            # 当放入框中有物品，并且和背包槽物品相同时，处理堆叠
-            # 处理思路：物品是否相同主要根据count=1的物品信息字典是否相同来判断
-            elif take_percent == 1 and to_item and from_item['extraId']:  # 背包槽为已压缩物品
-                print '1111111111111111111111111111111'
-                from_item_dict = json.loads(from_item['extraId'])
-                to_item_dict = json.loads(to_item['extraId'])
-                new_compress_count = from_item_dict['compress_count'] + to_item_dict['compress_count']
+				spawn_item_to_player_inv(from_item, player_id, to_slot)
+				# 最新的物品数据传送到客户端进行交换
+				from_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+		# endregion
 
-                # 处理存入extraId中count_data中数据，放入框到背包生成物品使用
-                to_item_dict['count_data']['have_compress_count'].append(from_item_dict['compress_count'])
+		# 放入框 ==》背包
+		elif isinstance(from_slot, str) and from_slot == 'input_slot':
+			print '--------------- linwei ------------------- to_item =', to_item
+			# 设置物品自定义tips和标识符
+			# 只有在存在空余槽位时才被允许放入背包
+			if take_percent == 1 and not to_item:
+				# spawn_item_to_player_inv(from_item, player_id, to_slot)
 
-                from_item['count'] = 1
-                from_item['customTips'] = ''
-                from_item['userData'] = None
-                new_extra_id = {'item_dict': from_item_dict['item_dict'], 'compress_count': new_compress_count,
-                                'count_data': to_item_dict['count_data']}
-                str_extra_id = json.dumps(new_extra_id)
-                from_item['extraId'] = str_extra_id
-                to_item = None
-                set_player_inv_item_num(player_id, from_slot, 0)
+				from_item_dict = json.loads(from_item['extraId'])
+				no_compress_count = from_item_dict['count_data']['no_compress_count']
+				have_compress_count = from_item_dict['count_data']['have_compress_count']
 
-        # 放入框 ==》背包
-        elif isinstance(from_slot, str) and from_slot == 'input_slot':
-            print '--------------- linwei ------------------- to_item =', to_item
-            # 设置物品自定义tips和标识符
-            # 只有在存在空余槽位时才被允许放入背包
-            if take_percent == 1 and not to_item:
-                # spawn_item_to_player_inv(from_item, player_id, to_slot)
+				# 未压缩物品生成到背包
+				if no_compress_count != 0:
 
-                from_item_dict = json.loads(from_item['extraId'])
-                no_compress_count = from_item_dict['count_data']['no_compress_count']
-                have_compress_count = from_item_dict['count_data']['have_compress_count']
+					if 0 < no_compress_count <= 64:
+						copy_item1 = copy.deepcopy(from_item)
+						temp_item1 = (json.loads(copy_item1['extraId']))['item_dict']
+						temp_item1['count'] = no_compress_count
+						spawn_item_to_player_inv(temp_item1, player_id, to_slot)
+						temp_item1 = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+						args["from_item"] = temp_item1
+						args["to_item"] = to_item
+						notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+						return False
 
-                # 未压缩物品生成到背包
-                if no_compress_count != 0:
+					if no_compress_count > 64:
+						copy_item1 = copy.deepcopy(from_item)
+						temp_item1 = (json.loads(copy_item1['extraId']))['item_dict']
+						temp_item1['count'] = 64
+						spawn_item_to_player_inv(temp_item1, player_id, to_slot)
+						temp_item1 = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+						args["from_item"] = temp_item1
+						args["to_item"] = to_item
+						notify_to_client(player_id, 'OnItemSwapServerEvent', args)
 
-                    if 0 < no_compress_count <= 64:
-                        copy_item1 = copy.deepcopy(from_item)
-                        temp_item1 = (json.loads(copy_item1['extraId']))['item_dict']
-                        temp_item1['count'] = no_compress_count
-                        spawn_item_to_player_inv(temp_item1, player_id, to_slot)
-                        temp_item1 = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
-                        args["from_item"] = temp_item1
-                        args["to_item"] = to_item
-                        notify_to_client(player_id, 'OnItemSwapServerEvent', args)
-                        return False
+					no_compress_count -= 64
+					for i in xrange(36):
+						item = get_player_item(player_id, ItemPosType.INVENTORY, i, True)
+						if item:
+							continue
+						if no_compress_count <= 0:
+							return False
+						if 0 < no_compress_count <= 64:
+							copy_item3 = copy.deepcopy(from_item)
+							temp_item3 = (json.loads(copy_item3['extraId']))['item_dict']
+							temp_item3['count'] = no_compress_count
+							spawn_item_to_player_inv(temp_item3, player_id, i)
+							temp_item3 = get_player_item(player_id, ItemPosType.INVENTORY, i, True)
+							args["from_item"] = temp_item3
+							args["to_item"] = to_item
+							notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+							break
+						copy_item2 = copy.deepcopy(from_item)
+						temp_item2 = (json.loads(copy_item2['extraId']))['item_dict']
+						temp_item2['count'] = 64
+						spawn_item_to_player_inv(temp_item2, player_id, i)
+						temp_item2 = get_player_item(player_id, ItemPosType.INVENTORY, i, True)
+						no_compress_count -= 64
+						args["from_item"] = temp_item2
+						args["to_item"] = to_item
+						notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+					# 更新背包UI
+					cls.update_inventory_ui(player_id, block_name)
 
-                    if no_compress_count > 64:
-                        copy_item1 = copy.deepcopy(from_item)
-                        temp_item1 = (json.loads(copy_item1['extraId']))['item_dict']
-                        temp_item1['count'] = 64
-                        spawn_item_to_player_inv(temp_item1, player_id, to_slot)
-                        temp_item1 = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
-                        args["from_item"] = temp_item1
-                        args["to_item"] = to_item
-                        notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+				# temp_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+				# args["from_item"] = temp_item
+				# args["to_item"] = to_item
+				# notify_to_client(player_id, 'OnItemSwapServerEvent', args)
 
-                    no_compress_count -= 64
-                    for i in xrange(36):
-                        item = get_player_item(player_id, ItemPosType.INVENTORY, i, True)
-                        if item:
-                            continue
-                        if no_compress_count <= 0:
-                            return False
-                        if 0 < no_compress_count <= 64:
-                            copy_item3 = copy.deepcopy(from_item)
-                            temp_item3 = (json.loads(copy_item3['extraId']))['item_dict']
-                            temp_item3['count'] = no_compress_count
-                            spawn_item_to_player_inv(temp_item3, player_id, i)
-                            temp_item3 = get_player_item(player_id, ItemPosType.INVENTORY, i, True)
-                            args["from_item"] = temp_item3
-                            args["to_item"] = to_item
-                            notify_to_client(player_id, 'OnItemSwapServerEvent', args)
-                            break
-                        copy_item2 = copy.deepcopy(from_item)
-                        temp_item2 = (json.loads(copy_item2['extraId']))['item_dict']
-                        temp_item2['count'] = 64
-                        spawn_item_to_player_inv(temp_item2, player_id, i)
-                        temp_item2 = get_player_item(player_id, ItemPosType.INVENTORY, i, True)
-                        no_compress_count -= 64
-                        args["from_item"] = temp_item2
-                        args["to_item"] = to_item
-                        notify_to_client(player_id, 'OnItemSwapServerEvent', args)
-                    # 更新背包UI
-                    cls.update_inventory_ui(player_id, block_name)
+				# 已压缩物品生成到背包
+				if have_compress_count:
 
-                    # temp_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
-                    # args["from_item"] = temp_item
-                    # args["to_item"] = to_item
-                    # notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+					# 如果背包槽位无物品，而且之前压缩的物品只有一个，则将此物品生成到该指定槽位
+					if not get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True) and len(have_compress_count) == 1:
+						temp_item = copy.deepcopy(from_item)
+						# json字符串 ==》python对象
+						data = json.loads(temp_item['extraId'])
+						# 将存储在extraId中最原始的物品信息赋给last_item
+						last_item = data['item_dict']
+						last_item['count'] = 1
+						tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(have_compress_count[-1]) + "§r"
+						last_item['customTips'] = tips
+						data['compress_count'] = have_compress_count[-1]
+						have_compress_count.pop()
+						data.pop('count_data')
+						last_extra_id = json.dumps(data)
+						last_item['extraId'] = last_extra_id
+						spawn_item_to_player_inv(last_item, player_id, to_slot)
+						# 最新的物品数据传送到客户端进行交换
+						last_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+						args["from_item"] = last_item
+						args["to_item"] = to_item
+						notify_to_client(player_id, 'OnItemSwapServerEvent', args)
 
-                # 已压缩物品生成到背包
-                if have_compress_count:
-                    for i in have_compress_count:
-                        temp_item = copy.deepcopy(from_item)
-                        # json字符串 ==》python对象
-                        data = json.loads(temp_item['extraId'])
-                        # 将存储在extraId中最原始的物品信息赋给last_item
-                        last_item = data['item_dict']
-                        last_item['count'] = 1
-                        tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(i) + "§r"
-                        last_item['customTips'] = tips
-                        data['compress_count'] = i
-                        data.pop('count_data')
-                        last_extra_id = json.dumps(data)
-                        last_item['extraId'] = last_extra_id
-                        spawn_item_to_player_inv(last_item, player_id, to_slot)  # 压缩物品生成到哪个槽位问题待解决
-                        # 最新的物品数据传送到客户端进行交换
-                        last_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
-                        args["from_item"] = last_item
-                        args["to_item"] = to_item
-                        notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+					# 如果背包槽位无物品，但之前压缩的物品多于一个，则优先在指定槽位上生成一个，再生成到其他空余槽位
+					elif not get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True) and len(have_compress_count) > 1:
+						temp_item = copy.deepcopy(from_item)
+						# json字符串 ==》python对象
+						data = json.loads(temp_item['extraId'])
+						# 将存储在extraId中最原始的物品信息赋给last_item
+						last_item = data['item_dict']
+						last_item['count'] = 1
+						tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(have_compress_count[-1]) + "§r"
+						last_item['customTips'] = tips
+						data['compress_count'] = have_compress_count[-1]
+						have_compress_count.pop()
+						data.pop('count_data')
+						last_extra_id = json.dumps(data)
+						last_item['extraId'] = last_extra_id
+						spawn_item_to_player_inv(last_item, player_id, to_slot)
+						# 最新的物品数据传送到客户端进行交换
+						last_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+						args["from_item"] = last_item
+						args["to_item"] = to_item
+						notify_to_client(player_id, 'OnItemSwapServerEvent', args)
 
-                return False
+						for i in xrange(36):
+							have_item = get_player_item(player_id, ItemPosType.INVENTORY, i, True)
+							if have_item:
+								continue
+							if len(have_compress_count) == 1:
+								temp_item_1 = copy.deepcopy(from_item)
+								# json字符串 ==》python对象
+								data_1 = json.loads(temp_item_1['extraId'])
+								# 将存储在extraId中最原始的物品信息赋给last_item
+								last_item_1 = data_1['item_dict']
+								last_item_1['count'] = 1
+								tips_1 = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(have_compress_count[-1]) + "§r"
+								last_item_1['customTips'] = tips_1
+								data_1['compress_count'] = have_compress_count[-1]
+								have_compress_count.pop()
+								data_1.pop('count_data')
+								last_extra_id_1 = json.dumps(data_1)
+								last_item_1['extraId'] = last_extra_id_1
+								spawn_item_to_player_inv(last_item_1, player_id, i)
+								# 最新的物品数据传送到客户端进行交换
+								last_item_1 = get_player_item(player_id, ItemPosType.INVENTORY, i, True)
+								args["from_item"] = last_item_1
+								args["to_item"] = to_item
+								notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+								break
+							if len(have_compress_count) == 0:
+								break
+							temp_item_2 = copy.deepcopy(from_item)
+							# json字符串 ==》python对象
+							data_2 = json.loads(temp_item_2['extraId'])
+							# 将存储在extraId中最原始的物品信息赋给last_item
+							last_item_2 = data['item_dict']
+							last_item_2['count'] = 1
+							tips_2 = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(have_compress_count[-1]) + "§r"
+							last_item_2['customTips'] = tips_2
+							data_2['compress_count'] = have_compress_count[-1]
+							have_compress_count.pop()
+							data_2.pop('count_data')
+							last_extra_id_2 = json.dumps(data_2)
+							last_item_2['extraId'] = last_extra_id_2
+							spawn_item_to_player_inv(last_item_2, player_id, i)
+							# 最新的物品数据传送到客户端进行交换
+							last_item_2 = get_player_item(player_id, ItemPosType.INVENTORY, i, True)
+							args["from_item"] = last_item_2
+							args["to_item"] = to_item
+							notify_to_client(player_id, 'OnItemSwapServerEvent', args)
 
-            if take_percent < 1:  # 输入框取出不允许分堆操作
-                return False
+					# 如果背包槽位有物品，直接将之前压缩的物品生成到其他空余槽位 # TODO
 
-        args["from_item"] = from_item
-        args["to_item"] = to_item
-        notify_to_client(player_id, 'OnItemSwapServerEvent', args)
-        return False
+					# copy
+					# for i in have_compress_count:
+					# 	temp_item = copy.deepcopy(from_item)
+					# 	# json字符串 ==》python对象
+					# 	data = json.loads(temp_item['extraId'])
+					# 	# 将存储在extraId中最原始的物品信息赋给last_item
+					# 	last_item = data['item_dict']
+					# 	last_item['count'] = 1
+					# 	tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(i) + "§r"
+					# 	last_item['customTips'] = tips
+					# 	data['compress_count'] = i
+					# 	data.pop('count_data')
+					# 	last_extra_id = json.dumps(data)
+					# 	last_item['extraId'] = last_extra_id
+					# 	spawn_item_to_player_inv(last_item, player_id, to_slot)  # 压缩物品生成到哪个槽位问题待解决
+					# 	# 最新的物品数据传送到客户端进行交换
+					# 	last_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+					# 	args["from_item"] = last_item
+					# 	args["to_item"] = to_item
+					# 	notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+
+					# for i in have_compress_count:
+					# 	temp_item = copy.deepcopy(from_item)
+					# 	# json字符串 ==》python对象
+					# 	data = json.loads(temp_item['extraId'])
+					# 	# 将存储在extraId中最原始的物品信息赋给last_item
+					# 	last_item = data['item_dict']
+					# 	last_item['count'] = 1
+					# 	tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(i) + "§r"
+					# 	last_item['customTips'] = tips
+					# 	data['compress_count'] = i
+					# 	data.pop('count_data')
+					# 	last_extra_id = json.dumps(data)
+					# 	last_item['extraId'] = last_extra_id
+					# 	spawn_item_to_player_inv(last_item, player_id, to_slot)  # 压缩物品生成到哪个槽位问题待解决
+					# 	# 最新的物品数据传送到客户端进行交换
+					# 	last_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+					# 	args["from_item"] = last_item
+					# 	args["to_item"] = to_item
+					# 	notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+
+				return False
+
+			if take_percent < 1:  # 输入框取出不允许分堆操作
+				return False
+
+		args["from_item"] = from_item
+		args["to_item"] = to_item
+		notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+		return False
