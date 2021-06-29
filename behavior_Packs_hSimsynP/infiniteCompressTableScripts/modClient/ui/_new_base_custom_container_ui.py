@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+import json
 
 import mod.client.extraClientApi as clientApi
 from mod.common.minecraftEnum import TouchEvent
 
 from ._base_ui import BaseUI
 from .. import get_ui_manager
-from ..api import get_item_basic_info, get_item_formatted_hover_text, notify_to_server, local_player
+from ..api import get_item_basic_info, get_item_formatted_hover_text, notify_to_server, local_player, \
+    get_item_hover_name
 from ..utils.container_interaction_state_utils import ButtonEventType, NodeId, ContainerInteractionStateMachine
 from ..utils.fly_image_utils import FlyImage
 from ...modCommon.config.custom_container_config import DOUBLE_CLICK_INTERVAL, FLY_ANIMATION_DURATION, \
@@ -388,18 +390,15 @@ class NewBaseCustomContainerUIScreen(BaseUI):
             self.set_item_at_path(from_path, to_item)
             self.set_item_at_path(to_path, from_item)
 
-        # item_name_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"], True, item.get("userData"))
-        # 设置物品名称显示
-        # item_name_text = get_item_hover_name(from_item['itemName'], from_item['auxValue'], from_item['userData'])
-        # label1_name_ctrl.SetText(item_name_text)
-        # label2_name_ctrl.SetText(item_name_text)
-        # 设置物品数量显示
-
-        #  压缩过和未压缩的 ===》放入框（均通过存入extraId中的compress_count进行压缩数量显示）
-        # extra_id_dict = json.loads(from_item['extraId'])
-        # item_count_text = str(extra_id_dict['compress_count'])
-        # label1_count_ctrl.SetText(item_count_text)
-        # label2_count_ctrl.SetText(item_count_text)
+            # 设置物品名称显示
+            item_name_text = get_item_hover_name(from_item['itemName'], from_item['auxValue'], from_item['userData'])
+            item_name_ctrl = self.GetBaseUIControl(self.item_name).asLabel()
+            item_name_ctrl.SetText(item_name_text)
+            # 设置已压缩数量显示
+            extra_id_dict = json.loads(from_item['extraId'])
+            compress_count_text = extra_id_dict['compress_count']
+            compress_count_ctrl = self.GetBaseUIControl(self.compress_count).asLabel()
+            compress_count_ctrl.SetText(str(compress_count_text))
 
         if from_path == '/input_btn':
             from_path = '/output_btn'
