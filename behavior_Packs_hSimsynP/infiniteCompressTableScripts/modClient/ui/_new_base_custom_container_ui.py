@@ -113,7 +113,8 @@ class NewBaseCustomContainerUIScreen(BaseUI):
         self.AddTouchEventHandler(self.btn_exit, self.close, {"isSwallow": True})
 
     def close(self, args):
-        get_ui_manager().pop_ui()
+        if args['TouchEvent'] == TouchEvent.TouchUp:
+            get_ui_manager().pop_ui()
 
     # 注册网格中的按钮
     def register_item_btn_event(self, item_btn_path):
