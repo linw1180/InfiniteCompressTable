@@ -8,3 +8,4 @@ DOUBLE_CLICK_INTERVAL = 4
 
 # 物品信息框透明度绑定参数
 ITEM_DETAIL_ALPHA = '#infinite_item_detail_alpha'
+LIMITED_COMPRESS_TABLE_ITEM_DETAIL_ALPHA = '#limited_item_detail_alpha'

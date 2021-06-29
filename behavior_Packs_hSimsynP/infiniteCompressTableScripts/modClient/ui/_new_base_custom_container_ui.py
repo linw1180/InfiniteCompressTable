@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-import json
 
 import mod.client.extraClientApi as clientApi
 from mod.common.minecraftEnum import TouchEvent
 
 from ._base_ui import BaseUI
 from .. import get_ui_manager
-from ..api import get_item_basic_info, get_item_formatted_hover_text, notify_to_server, local_player, \
-    get_item_hover_name
+from ..api import get_item_basic_info, get_item_formatted_hover_text, notify_to_server, local_player
 from ..utils.container_interaction_state_utils import ButtonEventType, NodeId, ContainerInteractionStateMachine
 from ..utils.fly_image_utils import FlyImage
-from ...modCommon.config.custom_container_config import DOUBLE_CLICK_INTERVAL, FLY_ANIMATION_DURATION, ITEM_DETAIL_ALPHA
+from ...modCommon.config.custom_container_config import DOUBLE_CLICK_INTERVAL, FLY_ANIMATION_DURATION, \
+    LIMITED_COMPRESS_TABLE_ITEM_DETAIL_ALPHA
 from ...modCommon.utils.item_utils import is_same_item
+from ...modCommon.utils.log_utils import func_log
 
 ViewBinder = clientApi.GetViewBinderCls()
 
@@ -104,13 +104,19 @@ class NewBaseCustomContainerUIScreen(BaseUI):
         self.block_pos = None
         self.dimension = None
         self.block_name = None
-        # endregion
 
-    # 注册两个自定义按钮，需要和网格中按钮注册到一起（不要单独注册）
+    # endregion
+
+    # 注册自定义按钮
     def on_ui_create(self):
         self.AddTouchEventHandler(self.from_item_button_path, self.on_item_btn_touch, {"isSwallow": True})
         self.AddTouchEventHandler(self.to_item_button_path, self.on_item_btn_touch, {"isSwallow": True})
         self.AddTouchEventHandler(self.btn_exit, self.close, {"isSwallow": True})
+        self.AddTouchEventHandler(self.take_out_btn, self.on_take_out, {"isSwallow": True})
+
+    def on_take_out(self, args):
+        if args['TouchEvent'] == TouchEvent.TouchUp:
+            pass
 
     def close(self, args):
         if args['TouchEvent'] == TouchEvent.TouchUp:
@@ -128,6 +134,7 @@ class NewBaseCustomContainerUIScreen(BaseUI):
     def refresh_bag_ui(self):
         pass
 
+    @func_log
     def handle_swap(self, button_path):
         if not self.last_selected_path:
             print "there is no last selected button, swap failed!!!"
@@ -172,7 +179,7 @@ class NewBaseCustomContainerUIScreen(BaseUI):
                 return
         return bag_grid_list
 
-    @ViewBinder.binding(ViewBinder.BF_BindFloat, ITEM_DETAIL_ALPHA)
+    @ViewBinder.binding(ViewBinder.BF_BindFloat, LIMITED_COMPRESS_TABLE_ITEM_DETAIL_ALPHA)
     def on_detail_show(self):
         if self.item_detail_alpha > 1:
             return 1.0
@@ -338,6 +345,7 @@ class NewBaseCustomContainerUIScreen(BaseUI):
     #     self.set_item_at_path(drop_path, None)
 
     # 交换物品
+    @func_log
     def swap_item(self, args):
 
         from_slot = args["from_slot"]
@@ -347,18 +355,18 @@ class NewBaseCustomContainerUIScreen(BaseUI):
         from_item = args["from_item"]
         to_item = args["to_item"]
 
-        label1_name_ctrl = self.GetBaseUIControl(self.label1_name).asLabel()
-        label2_name_ctrl = self.GetBaseUIControl(self.label2_name).asLabel()
-        label1_count_ctrl = self.GetBaseUIControl(self.label1_count).asLabel()
-        label2_count_ctrl = self.GetBaseUIControl(self.label2_count).asLabel()
+        # label1_name_ctrl = self.GetBaseUIControl(self.label1_name).asLabel()
+        # label2_name_ctrl = self.GetBaseUIControl(self.label2_name).asLabel()
+        # label1_count_ctrl = self.GetBaseUIControl(self.label1_count).asLabel()
+        # label2_count_ctrl = self.GetBaseUIControl(self.label2_count).asLabel()
 
-        def set_label_default():
-            # 设置物品名称显示
-            label1_name_ctrl.SetText('')
-            label2_name_ctrl.SetText('')
-            # 设置物品数量显示
-            label1_count_ctrl.SetText('')
-            label2_count_ctrl.SetText('')
+        # def set_label_default():
+        #     # 设置物品名称显示
+        #     label1_name_ctrl.SetText('')
+        #     label2_name_ctrl.SetText('')
+        #     # 设置物品数量显示
+        #     label1_count_ctrl.SetText('')
+        #     label2_count_ctrl.SetText('')
 
         # 更新飞行动画
         self.fly_animation_time = FLY_ANIMATION_DURATION
@@ -380,34 +388,34 @@ class NewBaseCustomContainerUIScreen(BaseUI):
             self.set_item_at_path(from_path, to_item)
             self.set_item_at_path(to_path, from_item)
 
-            # item_name_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"], True, item.get("userData"))
-            # 设置物品名称显示
-            item_name_text = get_item_hover_name(from_item['itemName'], from_item['auxValue'], from_item['userData'])
-            label1_name_ctrl.SetText(item_name_text)
-            label2_name_ctrl.SetText(item_name_text)
-            # 设置物品数量显示
+        # item_name_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"], True, item.get("userData"))
+        # 设置物品名称显示
+        # item_name_text = get_item_hover_name(from_item['itemName'], from_item['auxValue'], from_item['userData'])
+        # label1_name_ctrl.SetText(item_name_text)
+        # label2_name_ctrl.SetText(item_name_text)
+        # 设置物品数量显示
 
-            #  压缩过和未压缩的 ===》放入框（均通过存入extraId中的compress_count进行压缩数量显示）
-            extra_id_dict = json.loads(from_item['extraId'])
-            item_count_text = str(extra_id_dict['compress_count'])
-            label1_count_ctrl.SetText(item_count_text)
-            label2_count_ctrl.SetText(item_count_text)
+        #  压缩过和未压缩的 ===》放入框（均通过存入extraId中的compress_count进行压缩数量显示）
+        # extra_id_dict = json.loads(from_item['extraId'])
+        # item_count_text = str(extra_id_dict['compress_count'])
+        # label1_count_ctrl.SetText(item_count_text)
+        # label2_count_ctrl.SetText(item_count_text)
 
         if from_path == '/input_btn':
             from_path = '/output_btn'
             self.swap_item_ui(from_path, to_path, from_item, to_item)
             self.set_item_at_path(from_path, to_item)
             self.set_item_at_path(to_path, from_item)
-            # 恢复默认文本显示
-            set_label_default()
+        # 恢复默认文本显示
+        # set_label_default()
 
         if from_path == '/output_btn':
             from_path = '/input_btn'
             self.swap_item_ui(from_path, to_path, from_item, to_item)
             self.set_item_at_path(from_path, to_item)
             self.set_item_at_path(to_path, from_item)
-            # 恢复默认文本显示
-            set_label_default()
+        # 恢复默认文本显示
+        # set_label_default()
 
     def _update_fly_image(self, from_item, from_pos, to_pos):
         if not from_item:

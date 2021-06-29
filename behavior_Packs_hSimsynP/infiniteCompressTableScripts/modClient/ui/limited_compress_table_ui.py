@@ -34,7 +34,7 @@ class LimitedCompressTableUIScreen(NewBaseCustomContainerUIScreen):
             # 按钮绝对路径 '/main_panel/inv_grid/item_btn31'
             item_btn_path = self.item_btn_path_prefix + str(i + 1)
             # 物品信息字典，槽位无物品则为 None
-            item_dict = args[i]
+            item_dict = args[i]  # args是一个存储着背包所有物品字典的list数组[item1, item2, item3]
             self.bag_info[item_btn_path] = {"slot": i, "item": item_dict}
             self.slot_to_path[i] = item_btn_path
 
