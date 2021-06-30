@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import json
 
 from mod.common.minecraftEnum import ItemPosType
@@ -112,16 +113,51 @@ class LimitedCompressTable(Block):
             # 处理背包数据，清空指定槽位物品
             set_player_inv_item_num(player_id, from_slot, 0)
 
-        # 放入框已压缩物品 ==》背包中无物品槽位
+        # 分两种情况
         elif isinstance(from_slot, str) and from_slot == 'input_slot':
-            # 只需要设置物品自定义tips
-            # json字符串 ==》python对象
-            extra_id_dict = json.loads(from_item['extraId'])
-            tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(extra_id_dict['compress_count']) + "§r"
-            from_item['customTips'] = tips
-            spawn_item_to_player_inv(from_item, player_id, to_slot)
-            # 最新的物品数据传送到客户端进行交换
-            from_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+            # 处理取出
+            if args.get('can_take_out'):
+                extra_id_dict = json.loads(from_item['extraId'])
+                compress_count = extra_id_dict['compress_count']
+
+                copy_item = copy.deepcopy(from_item)
+                temp_item = (json.loads(copy_item['extraId']))['item_dict']
+                temp_item['count'] = compress_count
+                spawn_item_to_player_inv(temp_item, player_id)
+                temp_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+                args["from_item"] = temp_item
+                args["to_item"] = to_item
+                notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+                # 更新背包UI
+                cls.update_inventory_ui(player_id, block_name)
+                return False
+
+            if args.get('can_take_out_direct'):
+
+                extra_id_dict = json.loads(from_item['extraId'])
+                compress_count = extra_id_dict['compress_count']
+
+                copy_item = copy.deepcopy(from_item)
+                temp_item = (json.loads(copy_item['extraId']))['item_dict']
+                temp_item['count'] = compress_count
+                spawn_item_to_player_inv(temp_item, player_id)
+                temp_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+                args["from_item"] = temp_item
+                args["to_item"] = to_item
+                notify_to_client(player_id, 'OnItemSwapServerEvent', args)
+                # 更新背包UI
+                cls.update_inventory_ui(player_id, block_name)
+                return False
+            else:
+                # 处理放入框已压缩物品 ==》背包中无物品槽位
+                # 只需要设置物品自定义tips
+                # json字符串 ==》python对象
+                extra_id_dict = json.loads(from_item['extraId'])
+                tips = from_item_detail_text + "\n已压缩数量 " + "§b§o" + str(extra_id_dict['compress_count']) + "§r"
+                from_item['customTips'] = tips
+                spawn_item_to_player_inv(from_item, player_id, to_slot)
+                # 最新的物品数据传送到客户端进行交换
+                from_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
 
         args["from_item"] = from_item
         args["to_item"] = to_item

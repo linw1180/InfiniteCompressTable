@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import copy
 import json
+import re
 
 import mod.client.extraClientApi as clientApi
 from mod.common.minecraftEnum import TouchEvent
@@ -71,6 +73,8 @@ class NewBaseCustomContainerUIScreen(BaseUI):
         self.btn_exit = '/bg_panel/bg/btn_exit'  # 退出按钮
 
         # endregion
+        # 测试用
+        self.test = 0
 
         # region 管理背包数据及各个槽位对应的路径
         self.bag_info = {}
@@ -118,10 +122,152 @@ class NewBaseCustomContainerUIScreen(BaseUI):
 
     def on_take_out(self, args):
         if args['TouchEvent'] == TouchEvent.TouchUp:
-            pass
+            text_edit_ctrl = self.GetBaseUIControl(self.text_edit_box0).asTextEditBox()
+            text_edit = text_edit_ctrl.GetEditText()
+
+            # 使用正则进行字符串匹配，匹配成功返回匹配到的字符串对象，失败则返回None
+            ret = re.search(r'^([1-9][0-9]*)$', text_edit)
+            if ret is None:
+                return
+            # 通过调用group()方法可以获取到匹配到的所有字符
+            # str_count = ret.group()
+            input_count = int(ret.group())
+
+            item = self.get_item_by_path(self.from_item_button_path)
+            if not item:
+                return
+            extra_id = json.loads(item['extraId'])
+            # region 第二次发送事件用
+            two_extra_id = extra_id
+            two_item = copy.deepcopy(item)
+            # endregion
+            all_count = extra_id['compress_count']
+
+            if input_count > all_count:
+                # 输入数量 > 已压缩数量
+                # 给玩家提示
+                # 根据路径获取BaseUIControl实例
+                msg2_ctrl = self.GetBaseUIControl(self.msg2).asLabel()
+                msg2_ctrl.SetText("解压数量超过压缩数量，请重新输入")
+                # 延迟三秒清空该提示信息
+                add_timer(3.0, msg2_ctrl.SetText, '')
+                return
+
+            if input_count == all_count:
+
+                for i in xrange(1, 36):
+                    path = '/main_panel/inv_grid/item_btn' + str(i)
+                    m_item = self.get_item_by_path(path)
+                    if m_item:
+                        continue
+                    to_slot = i
+                    break
+                from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
+                                                                      True,
+                                                                      item.get("userData"))
+                notify_to_server('OnItemSwapClientEvent', {
+                    "block_name": self.block_name,
+                    "from_slot": 'input_slot',
+                    "to_slot": to_slot,
+                    "player_id": local_player,
+                    "from_item": item,
+                    "to_item": None,
+                    "block_pos": self.block_pos,
+                    "dimension": self.dimension,
+                    "take_percent": self.take_percent,
+                    "from_item_detail_text": from_item_detail_text,
+                    "can_take_out_direct": 'can_take_out_direct'
+                })
+
+            if input_count < all_count:
+                extra_id['compress_count'] = input_count
+                new_extra_id = json.dumps(extra_id)
+                item['extraId'] = new_extra_id
+
+                for i in xrange(1, 36):
+                    path = '/main_panel/inv_grid/item_btn' + str(i)
+                    m_item = self.get_item_by_path(path)
+                    if m_item:
+                        continue
+                    to_slot = i
+                    break
+                from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
+                                                                      True,
+                                                                      item.get("userData"))
+                notify_to_server('OnItemSwapClientEvent', {
+                    "block_name": self.block_name,
+                    "from_slot": 'input_slot',
+                    "to_slot": to_slot,
+                    "player_id": local_player,
+                    "from_item": item,
+                    "to_item": None,
+                    "block_pos": self.block_pos,
+                    "dimension": self.dimension,
+                    "take_percent": self.take_percent,
+                    "from_item_detail_text": from_item_detail_text,
+                    "can_take_out": 'can_take_out'
+                })
+
+                # 再次发送事件
+                new_count = all_count - two_extra_id['compress_count']
+                two_extra_id['compress_count'] = new_count
+                new_two_extra_id = json.dumps(two_extra_id)
+                two_item['extraId'] = new_two_extra_id
+
+                for i in xrange(1, 36):
+                    path = '/main_panel/inv_grid/item_btn' + str(i)
+                    m_item = self.get_item_by_path(path)
+                    if m_item:
+                        continue
+                    new_slot = i
+                    break
+                two_from_item_detail_text = get_item_formatted_hover_text(two_item["itemName"], two_item["auxValue"],
+                                                                          True,
+                                                                          two_item.get("userData"))
+                notify_to_server('OnItemSwapClientEvent', {
+                    "block_name": self.block_name,
+                    "from_slot": new_slot,
+                    "to_slot": 'input_slot',
+                    "player_id": local_player,
+                    "from_item": two_item,
+                    "to_item": None,
+                    "block_pos": self.block_pos,
+                    "dimension": self.dimension,
+                    "take_percent": self.take_percent,
+                    "from_item_detail_text": two_from_item_detail_text,
+                    # "can_take_out": 'can_take_out'
+                })
 
     def close(self, args):
         if args['TouchEvent'] == TouchEvent.TouchUp:
+
+            item = self.get_item_by_path(self.from_item_button_path)
+            if not item:
+                get_ui_manager().pop_ui()
+                return
+            # 处理解压缩台关闭时放入框还有物品问题
+            for i in xrange(1, 36):
+                path = '/main_panel/inv_grid/item_btn' + str(i)
+                m_item = self.get_item_by_path(path)
+                if m_item:
+                    continue
+                to_slot = i
+                break
+            two_from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
+                                                                      True,
+                                                                      item.get("userData"))
+            notify_to_server('OnItemSwapClientEvent', {
+                "block_name": self.block_name,
+                "from_slot": 'input_slot',
+                "to_slot": to_slot,
+                "player_id": local_player,
+                "from_item": item,
+                "to_item": None,
+                "block_pos": self.block_pos,
+                "dimension": self.dimension,
+                "take_percent": self.take_percent,
+                "from_item_detail_text": two_from_item_detail_text,
+            })
             get_ui_manager().pop_ui()
 
     # 注册网格中的按钮
@@ -349,6 +495,7 @@ class NewBaseCustomContainerUIScreen(BaseUI):
     # 交换物品
     @func_log
     def swap_item(self, args):
+        print '------------------------ swap_item -------------------------------------------- args =', args
 
         from_slot = args["from_slot"]
         to_slot = args["to_slot"]
