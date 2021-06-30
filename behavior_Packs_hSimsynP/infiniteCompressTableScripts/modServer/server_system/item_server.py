@@ -3,13 +3,11 @@
 from mod.common.minecraftEnum import ItemPosType
 
 from infiniteCompressTableScripts.modCommon.utils import item_utils
-from infiniteCompressTableScripts.modCommon.utils.log_utils import func_log
 from infiniteCompressTableScripts.modServer.api import get_player_item, get_item_basic_info, set_player_inv_item_num, \
     spawn_item_to_player_inv, exchange_player_inv_item, notify_to_client
 from infiniteCompressTableScripts.modServer.server_system import block_server
 
 
-@func_log
 def on_item_swap(args):
     player_id = args['player_id']
     block_name = args['block_name']

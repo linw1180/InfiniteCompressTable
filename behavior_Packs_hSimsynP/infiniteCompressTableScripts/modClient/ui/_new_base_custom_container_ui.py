@@ -15,7 +15,6 @@ from ..utils.fly_image_utils import FlyImage
 from ...modCommon.config.custom_container_config import DOUBLE_CLICK_INTERVAL, FLY_ANIMATION_DURATION, \
     LIMITED_COMPRESS_TABLE_ITEM_DETAIL_ALPHA
 from ...modCommon.utils.item_utils import is_same_item
-from ...modCommon.utils.log_utils import func_log
 
 ViewBinder = clientApi.GetViewBinderCls()
 
@@ -282,7 +281,6 @@ class NewBaseCustomContainerUIScreen(BaseUI):
     def refresh_bag_ui(self):
         pass
 
-    @func_log
     def handle_swap(self, button_path):
         if not self.last_selected_path:
             print "there is no last selected button, swap failed!!!"
@@ -497,9 +495,7 @@ class NewBaseCustomContainerUIScreen(BaseUI):
     #     self.set_item_at_path(drop_path, None)
 
     # 交换物品
-    @func_log
     def swap_item(self, args):
-        print '------------------------ swap_item -------------------------------------------- args =', args
 
         from_slot = args["from_slot"]
         to_slot = args["to_slot"]
