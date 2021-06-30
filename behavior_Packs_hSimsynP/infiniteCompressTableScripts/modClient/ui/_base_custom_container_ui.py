@@ -330,11 +330,18 @@ class BaseCustomContainerUIScreen(BaseUI):
         pos2 = self.GetBaseUIControl(item_path).GetPosition()
         return pos1[0] + pos2[0] + 2, pos1[1] + pos2[1] + 2
 
+        # pos1 = self.GetPosition(self.main_panel_path + '/inv_grid')
+        # pos2 = self.GetPosition(item_path)
+        # return pos1[0] + pos2[0] + 2, pos1[1] + pos2[1] + 2
+
     def get_custom_container_panel_item_position(self, item_path):
         """计算RightPanel控件相对于ContentPanel的位置，用于飞行动画"""
         pos1 = self.GetBaseUIControl(self.custom_container_panel_path).GetPosition()
         pos2 = self.GetBaseUIControl(item_path).GetPosition()
         return pos1[0] + pos2[0] + 4, pos1[1] + pos2[1] + 4
+
+        # pos = self.GetPosition(item_path)
+        # return pos[0] + 4, pos[1] + 4
 
     def is_custom_container_panel(self, path):
         """判断是否为RightPanel子控件"""
@@ -342,10 +349,24 @@ class BaseCustomContainerUIScreen(BaseUI):
             return True
         return False
 
+        # if path.startswith(self.main_panel_path + '/inv_grid'):
+        #     return '1'
+        # elif path == self.from_item_button_path:
+        #     return '2'
+        # elif path == self.to_item_button_path:
+        #     return '3'
+        # return '4'
+
     def get_item_position(self, item_path):
         if self.is_custom_container_panel(item_path):
             return self.get_custom_container_panel_item_position(item_path)
         return self.get_bag_item_position(item_path)
+
+        # if self.is_custom_container_panel(item_path) == '1':
+        #     return self.get_bag_item_position(item_path)
+        # elif self.is_custom_container_panel(item_path) == '2' or '3':
+        #     return self.get_custom_container_panel_item_position(item_path)
+        # return None
 
     def set_item_at_path(self, item_path, item):
         self.bag_info[item_path]["item"] = item
@@ -390,9 +411,11 @@ class BaseCustomContainerUIScreen(BaseUI):
         from_pos = self.get_item_position(from_path)
         to_pos = self.get_item_position(to_path)
 
-        self._update_fly_image(from_item, from_pos, to_pos)
-        if to_item and not is_same_item(from_item, to_item):
-            self._update_fly_image(to_item, to_pos, from_pos)
+        # 屏蔽自定义容器的飞行动画
+        if not isinstance(from_slot, str) and not isinstance(to_slot, str):
+            self._update_fly_image(from_item, from_pos, to_pos)
+            if to_item and not is_same_item(from_item, to_item):
+                self._update_fly_image(to_item, to_pos, from_pos)
 
         self.swap_item_ui(from_path, to_path, from_item, to_item)
 

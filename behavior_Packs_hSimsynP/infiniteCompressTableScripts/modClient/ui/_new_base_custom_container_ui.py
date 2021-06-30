@@ -517,9 +517,11 @@ class NewBaseCustomContainerUIScreen(BaseUI):
         from_pos = self.get_item_position(from_path)
         to_pos = self.get_item_position(to_path)
 
-        self._update_fly_image(from_item, from_pos, to_pos)
-        if to_item and not is_same_item(from_item, to_item):
-            self._update_fly_image(to_item, to_pos, from_pos)
+        # 屏蔽自定义容器的飞行动画
+        if not isinstance(from_slot, str) and not isinstance(to_slot, str):
+            self._update_fly_image(from_item, from_pos, to_pos)
+            if to_item and not is_same_item(from_item, to_item):
+                self._update_fly_image(to_item, to_pos, from_pos)
 
         self.swap_item_ui(from_path, to_path, from_item, to_item)
 
