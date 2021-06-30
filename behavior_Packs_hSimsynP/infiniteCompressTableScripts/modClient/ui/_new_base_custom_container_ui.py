@@ -401,7 +401,11 @@ class NewBaseCustomContainerUIScreen(BaseUI):
 
     def handle_selected(self, button_path):
         self.last_selected_path = button_path
-        self.GetBaseUIControl(self.last_selected_path + "/img_selected").SetVisible(True)
+        # 点击输出框时，不显示选择图片展示（输出框不允许交互，所以屏蔽相关效果比较好）
+        if self.last_selected_path == self.to_item_button_path:
+            self.GetBaseUIControl(self.last_selected_path + "/img_selected").SetVisible(False)
+        else:
+            self.GetBaseUIControl(self.last_selected_path + "/img_selected").SetVisible(True)
 
     def handle_un_selected(self, button_path):
         self.container_state_machine.reset_to_default()
