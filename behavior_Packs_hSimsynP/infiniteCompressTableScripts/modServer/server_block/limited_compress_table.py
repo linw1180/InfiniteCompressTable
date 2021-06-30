@@ -61,7 +61,7 @@ class LimitedCompressTable(Block):
         if isinstance(from_slot, str) and from_slot == 'output_slot':
             return False
         # 未压缩物品不允许放入（extraId存在的情况下，根据extraId中是否有compress_count作为是否压缩的判断条件）
-        if isinstance(to_slot, str) and to_slot == 'input_slot':
+        if isinstance(to_slot, str) and to_slot == 'input_slot' and to_item is None:
             if not from_item['extraId']:
                 # 发送事件到客户端，显示提示信息
                 notify_to_client(player_id, 'ShowShortTimeMsg1Event', {'block_name': block_name})
