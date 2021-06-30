@@ -40,11 +40,12 @@ def on_item_swap(args):
         ui_node.swap_item(args)
 
 
-def save_box_size(args):
+def on_short_time_msg1_show(args):
     ui_key = args['block_name']
     ui_data = UI_DEFS.get(ui_key)
     ui_node = get_ui_manager().get_ui_by_push(ui_data)
-    ui_node.box_size = args['data']
+    if ui_node:
+        ui_node.show_short_time_msg1(args)
 
 
 def update_grid(args):

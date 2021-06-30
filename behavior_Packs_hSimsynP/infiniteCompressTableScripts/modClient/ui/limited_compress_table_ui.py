@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from infiniteCompressTableScripts.modClient.ui._new_base_custom_container_ui import NewBaseCustomContainerUIScreen
 
 
@@ -78,3 +77,9 @@ class LimitedCompressTableUIScreen(NewBaseCustomContainerUIScreen):
     # 后执行
     def swap_item(self, args):
         return super(LimitedCompressTableUIScreen, self).swap_item(args)
+
+    def show_short_time_msg1(self, args):
+        """
+        短时间显示msg1提示信息的回调函数
+        """
+        super(LimitedCompressTableUIScreen, self).show_short_time_msg1(args)

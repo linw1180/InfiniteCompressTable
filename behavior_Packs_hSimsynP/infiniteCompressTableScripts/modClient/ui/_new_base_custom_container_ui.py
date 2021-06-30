@@ -7,7 +7,7 @@ from mod.common.minecraftEnum import TouchEvent
 from ._base_ui import BaseUI
 from .. import get_ui_manager
 from ..api import get_item_basic_info, get_item_formatted_hover_text, notify_to_server, local_player, \
-    get_item_hover_name
+    get_item_hover_name, add_timer
 from ..utils.container_interaction_state_utils import ButtonEventType, NodeId, ContainerInteractionStateMachine
 from ..utils.fly_image_utils import FlyImage
 from ...modCommon.config.custom_container_config import DOUBLE_CLICK_INTERVAL, FLY_ANIMATION_DURATION, \
@@ -357,18 +357,9 @@ class NewBaseCustomContainerUIScreen(BaseUI):
         from_item = args["from_item"]
         to_item = args["to_item"]
 
-        # label1_name_ctrl = self.GetBaseUIControl(self.label1_name).asLabel()
-        # label2_name_ctrl = self.GetBaseUIControl(self.label2_name).asLabel()
-        # label1_count_ctrl = self.GetBaseUIControl(self.label1_count).asLabel()
-        # label2_count_ctrl = self.GetBaseUIControl(self.label2_count).asLabel()
-
-        # def set_label_default():
-        #     # 设置物品名称显示
-        #     label1_name_ctrl.SetText('')
-        #     label2_name_ctrl.SetText('')
-        #     # 设置物品数量显示
-        #     label1_count_ctrl.SetText('')
-        #     label2_count_ctrl.SetText('')
+        # 根据路径获取BaseUIControl实例
+        item_name_ctrl = self.GetBaseUIControl(self.item_name).asLabel()
+        compress_count_ctrl = self.GetBaseUIControl(self.compress_count).asLabel()
 
         # 更新飞行动画
         self.fly_animation_time = FLY_ANIMATION_DURATION
@@ -384,6 +375,7 @@ class NewBaseCustomContainerUIScreen(BaseUI):
         self.set_item_at_path(from_path, to_item)
         self.set_item_at_path(to_path, from_item)
 
+        # 往放入框中放入物品时，输出框中也应该有相同物品数据
         if to_path == '/input_btn':
             to_path = '/output_btn'
             self.swap_item_ui(from_path, to_path, from_item, to_item)
@@ -392,29 +384,39 @@ class NewBaseCustomContainerUIScreen(BaseUI):
 
             # 设置物品名称显示
             item_name_text = get_item_hover_name(from_item['itemName'], from_item['auxValue'], from_item['userData'])
-            item_name_ctrl = self.GetBaseUIControl(self.item_name).asLabel()
             item_name_ctrl.SetText(item_name_text)
             # 设置已压缩数量显示
             extra_id_dict = json.loads(from_item['extraId'])
             compress_count_text = extra_id_dict['compress_count']
-            compress_count_ctrl = self.GetBaseUIControl(self.compress_count).asLabel()
             compress_count_ctrl.SetText(str(compress_count_text))
 
+        # 物品不进行解压缩，取出返还到背包时，输出框物品也相应被取出
         if from_path == '/input_btn':
             from_path = '/output_btn'
             self.swap_item_ui(from_path, to_path, from_item, to_item)
             self.set_item_at_path(from_path, to_item)
             self.set_item_at_path(to_path, from_item)
-        # 恢复默认文本显示
-        # set_label_default()
 
-        if from_path == '/output_btn':
-            from_path = '/input_btn'
-            self.swap_item_ui(from_path, to_path, from_item, to_item)
-            self.set_item_at_path(from_path, to_item)
-            self.set_item_at_path(to_path, from_item)
-        # 恢复默认文本显示
-        # set_label_default()
+            # 当放入框物品被放回背包时，重置显示的物品名和已压缩数量
+            item_name_ctrl.SetText('')
+            compress_count_ctrl.SetText('')
+
+        # TODO 清空物品名和已压缩数量显示时机：放入框没有物品时
+        # if from_path == '/input_btn':
+        #     from_path = '/output_btn'
+        #     self.swap_item_ui(from_path, to_path, from_item, to_item)
+        #     self.set_item_at_path(from_path, to_item)
+        #     self.set_item_at_path(to_path, from_item)
+        # # 恢复默认文本显示
+        # # set_label_default()
+        #
+        # if from_path == '/output_btn':
+        #     from_path = '/input_btn'
+        #     self.swap_item_ui(from_path, to_path, from_item, to_item)
+        #     self.set_item_at_path(from_path, to_item)
+        #     self.set_item_at_path(to_path, from_item)
+        # # 恢复默认文本显示
+        # # set_label_default()
 
     def _update_fly_image(self, from_item, from_pos, to_pos):
         if not from_item:
@@ -646,3 +648,13 @@ class NewBaseCustomContainerUIScreen(BaseUI):
                     if self.fly_animation_time == 0:
                         fly_img.release()
                         img_widget.SetVisible(False)
+
+    def show_short_time_msg1(self, args):
+        """
+        短时间展示msg1提示信息
+        """
+        # 根据路径获取BaseUIControl实例
+        msg1_ctrl = self.GetBaseUIControl(self.msg1).asLabel()
+        msg1_ctrl.SetText("该物品未压缩")
+        # 延迟三秒清空该提示信息
+        add_timer(3.0, msg1_ctrl.SetText, '')

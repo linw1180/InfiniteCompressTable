@@ -53,43 +53,29 @@ class LimitedCompressTable(Block):  # TODO 内容待修改
         # 执行到此处说明此次交换必定有一个自定义槽位存在
         # 因为自定义槽位名是str，背包槽位名是int所以做如下判断
 
+        # region 解压缩工作台相关操作限制条件
         # 输出框不允许放入操作
         if isinstance(to_slot, str) and to_slot == 'output_slot':
             return False
-
-        # 两个自定义槽位之间不允许交换
-        if isinstance(from_slot, str) and isinstance(to_slot, str):
+        # 输出框不允许取出操作
+        if isinstance(from_slot, str) and from_slot == 'output_slot':
             return False
-
-        # 从放入框和输出框中取，不允许取出到有物品的背包槽位（因为取出数量非常可能超过64）
-        if isinstance(to_slot, int) and to_item:
-            return False
-
-        # 背包 ===》放入框
-        if isinstance(from_slot, int) and to_slot == 'input_slot':
-
-            # 只支持一键放入，不支持分堆
-            if take_percent < 1:
+        # 未压缩物品不允许放入（extraId存在的情况下，根据extraId中是否有compress_count作为是否压缩的判断条件）
+        if isinstance(to_slot, str) and to_slot == 'input_slot':
+            if not from_item['extraId']:
+                # 发送事件到客户端，显示提示信息
+                notify_to_client(player_id, 'ShowShortTimeMsg1Event', {'block_name': block_name})
                 return False
-
-            # 当背包槽和放入框中均有物品，而且两个物品不一样时，不允许交换
-            # 判断思路：根据默认count=1的原始物品信息字典是否相同来判断
-            if from_item and to_item and from_item['extraId']:  # 背包槽物品已压缩
-                m_from_item_dict = json.loads(from_item['extraId'])
-                m_dict = m_from_item_dict['item_dict']
-                m_dict['customTips'] = ''
-                m_to_item_dict = json.loads(to_item['extraId'])
-                if m_dict != m_to_item_dict['item_dict']:
-                    return False
-
-            # 当背包槽和放入框中均有物品，而且两个物品不一样时，不允许交换
-            # 判断思路：根据默认count=1的原始物品信息字典是否相同来判断
-            if from_item and to_item and not from_item['extraId']:  # 背包槽物品未压缩
-                n_temp_item = copy.deepcopy(from_item)
-                n_temp_item['count'] = 1
-                n_to_item_dict = json.loads(to_item['extraId'])
-                if n_temp_item != n_to_item_dict['item_dict']:
-                    return False
+            check_extra_id_dict = json.loads(from_item['extraId'])
+            if not check_extra_id_dict['compress_count']:
+                # 发送事件到客户端，显示提示信息
+                notify_to_client(player_id, 'ShowShortTimeMsg1Event', {'block_name': block_name})
+                return False
+        # 当放入框中存在物品，不允许继续放入 
+        if isinstance(to_slot, str) and to_slot == 'input_slot':
+            if to_item:
+                return False
+        # endregion
 
         # 压缩台暂时不支持分堆操作
         # if take_percent < 1 and not to_item:
