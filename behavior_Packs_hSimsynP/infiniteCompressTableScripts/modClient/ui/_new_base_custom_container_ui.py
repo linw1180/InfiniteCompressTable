@@ -223,7 +223,7 @@ class NewBaseCustomContainerUIScreen(BaseUI):
                     # 发送信息提示玩家
                     # 根据路径获取BaseUIControl实例
                     msg2_ctrl = self.GetBaseUIControl(self.msg2).asLabel()
-                    msg2_ctrl.SetText("背包内没有足够空间，解压失败，请清理空间重试")
+                    msg2_ctrl.SetText("背包空间不足，解压失败，请清理空间重试")
                     # 延迟三秒清空该提示信息
                     add_timer(3.0, msg2_ctrl.SetText, '')
                     return
