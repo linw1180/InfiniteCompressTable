@@ -154,88 +154,146 @@ class NewBaseCustomContainerUIScreen(BaseUI):
 
             if input_count == all_count:
 
-                for i in xrange(1, 36):
-                    path = '/main_panel/inv_grid/item_btn' + str(i)
-                    m_item = self.get_item_by_path(path)
-                    if m_item:
+                # region 检测背包剩余空间
+                remain_slot__count = 0
+                for x in xrange(1, 37):
+                    temp_path = '/main_panel/inv_grid/item_btn' + str(x)
+                    temp_item = self.get_item_by_path(temp_path)
+                    if temp_item:
                         continue
-                    to_slot = i
-                    break
-                from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
-                                                                      True,
-                                                                      item.get("userData"))
-                notify_to_server('OnItemSwapClientEvent', {
-                    "block_name": self.block_name,
-                    "from_slot": 'input_slot',
-                    "to_slot": to_slot,
-                    "player_id": local_player,
-                    "from_item": item,
-                    "to_item": None,
-                    "block_pos": self.block_pos,
-                    "dimension": self.dimension,
-                    "take_percent": self.take_percent,
-                    "from_item_detail_text": from_item_detail_text,
-                    "can_take_out_direct": 'can_take_out_direct'
-                })
+                    remain_slot__count += 1
+                # endregion
+
+                if input_count > remain_slot__count * 64:
+                    # 处理背包空间不足，解压失败，提示玩家
+                    # 发送信息提示玩家
+                    # 根据路径获取BaseUIControl实例
+                    msg2_ctrl = self.GetBaseUIControl(self.msg2).asLabel()
+                    msg2_ctrl.SetText("背包空间不足，解压失败，请清理空间重试")
+                    # 延迟三秒清空该提示信息
+                    add_timer(3.0, msg2_ctrl.SetText, '')
+                    return
+                else:
+                    # 背包剩余空间充足，可进行解压缩操作
+                    for i in xrange(1, 37):
+                        path = '/main_panel/inv_grid/item_btn' + str(i)
+                        m_item = self.get_item_by_path(path)
+                        if m_item:
+                            continue
+                        to_slot = i
+                        break
+                    from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
+                                                                          True,
+                                                                          item.get("userData"))
+                    notify_to_server('OnItemSwapClientEvent', {
+                        "block_name": self.block_name,
+                        "from_slot": 'input_slot',
+                        "to_slot": to_slot,
+                        "player_id": local_player,
+                        "from_item": item,
+                        "to_item": None,
+                        "block_pos": self.block_pos,
+                        "dimension": self.dimension,
+                        "take_percent": self.take_percent,
+                        "from_item_detail_text": from_item_detail_text,
+                        "can_take_out_direct": 'can_take_out_direct'
+                    })
+                    # 发送信息提示玩家取出成功
+                    # 根据路径获取BaseUIControl实例
+                    msg2_ctrl = self.GetBaseUIControl(self.msg2).asLabel()
+                    msg2_ctrl.SetText("取出成功")
+                    # 延迟三秒清空该提示信息
+                    add_timer(3.0, msg2_ctrl.SetText, '')
+                    return
 
             if input_count < all_count:
-                extra_id['compress_count'] = input_count
-                new_extra_id = json.dumps(extra_id)
-                item['extraId'] = new_extra_id
 
-                for i in xrange(1, 36):
-                    path = '/main_panel/inv_grid/item_btn' + str(i)
-                    m_item = self.get_item_by_path(path)
-                    if m_item:
+                # region 检测背包剩余空间
+                remain_slot_count = 0
+                for x in xrange(1, 37):
+                    temp_path = '/main_panel/inv_grid/item_btn' + str(x)
+                    temp_item = self.get_item_by_path(temp_path)
+                    if temp_item:
                         continue
-                    to_slot = i
-                    break
-                from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
-                                                                      True,
-                                                                      item.get("userData"))
-                notify_to_server('OnItemSwapClientEvent', {
-                    "block_name": self.block_name,
-                    "from_slot": 'input_slot',
-                    "to_slot": to_slot,
-                    "player_id": local_player,
-                    "from_item": item,
-                    "to_item": None,
-                    "block_pos": self.block_pos,
-                    "dimension": self.dimension,
-                    "take_percent": self.take_percent,
-                    "from_item_detail_text": from_item_detail_text,
-                    "can_take_out": 'can_take_out'
-                })
+                    remain_slot_count += 1
+                # endregion
 
-                # 再次发送事件
-                new_count = all_count - two_extra_id['compress_count']
-                two_extra_id['compress_count'] = new_count
-                new_two_extra_id = json.dumps(two_extra_id)
-                two_item['extraId'] = new_two_extra_id
+                if input_count > remain_slot_count * 64:
+                    # 处理背包空间不足，解压失败，提示玩家
+                    # 发送信息提示玩家
+                    # 根据路径获取BaseUIControl实例
+                    msg2_ctrl = self.GetBaseUIControl(self.msg2).asLabel()
+                    msg2_ctrl.SetText("背包内没有足够空间，解压失败，请清理空间重试")
+                    # 延迟三秒清空该提示信息
+                    add_timer(3.0, msg2_ctrl.SetText, '')
+                    return
+                else:
+                    # 背包剩余空间充足，可进行解压缩操作
+                    extra_id['compress_count'] = input_count
+                    new_extra_id = json.dumps(extra_id)
+                    item['extraId'] = new_extra_id
 
-                for i in xrange(1, 36):
-                    path = '/main_panel/inv_grid/item_btn' + str(i)
-                    m_item = self.get_item_by_path(path)
-                    if m_item:
-                        continue
-                    new_slot = i
-                    break
-                two_from_item_detail_text = get_item_formatted_hover_text(two_item["itemName"], two_item["auxValue"],
+                    for i in xrange(1, 37):
+                        path = '/main_panel/inv_grid/item_btn' + str(i)
+                        m_item = self.get_item_by_path(path)
+                        if m_item:
+                            continue
+                        to_slot = i
+                        break
+                    from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
                                                                           True,
-                                                                          two_item.get("userData"))
-                notify_to_server('OnItemSwapClientEvent', {
-                    "block_name": self.block_name,
-                    "from_slot": new_slot,
-                    "to_slot": 'input_slot',
-                    "player_id": local_player,
-                    "from_item": two_item,
-                    "to_item": None,
-                    "block_pos": self.block_pos,
-                    "dimension": self.dimension,
-                    "take_percent": self.take_percent,
-                    "from_item_detail_text": two_from_item_detail_text,
-                    # "can_take_out": 'can_take_out'
-                })
+                                                                          item.get("userData"))
+                    notify_to_server('OnItemSwapClientEvent', {
+                        "block_name": self.block_name,
+                        "from_slot": 'input_slot',
+                        "to_slot": to_slot,
+                        "player_id": local_player,
+                        "from_item": item,
+                        "to_item": None,
+                        "block_pos": self.block_pos,
+                        "dimension": self.dimension,
+                        "take_percent": self.take_percent,
+                        "from_item_detail_text": from_item_detail_text,
+                        "can_take_out": 'can_take_out'
+                    })
+
+                    # 再次发送事件
+                    new_count = all_count - two_extra_id['compress_count']
+                    two_extra_id['compress_count'] = new_count
+                    new_two_extra_id = json.dumps(two_extra_id)
+                    two_item['extraId'] = new_two_extra_id
+
+                    for i in xrange(1, 37):
+                        path = '/main_panel/inv_grid/item_btn' + str(i)
+                        m_item = self.get_item_by_path(path)
+                        if m_item:
+                            continue
+                        new_slot = i
+                        break
+                    two_from_item_detail_text = get_item_formatted_hover_text(two_item["itemName"],
+                                                                              two_item["auxValue"],
+                                                                              True,
+                                                                              two_item.get("userData"))
+                    notify_to_server('OnItemSwapClientEvent', {
+                        "block_name": self.block_name,
+                        "from_slot": new_slot,
+                        "to_slot": 'input_slot',
+                        "player_id": local_player,
+                        "from_item": two_item,
+                        "to_item": None,
+                        "block_pos": self.block_pos,
+                        "dimension": self.dimension,
+                        "take_percent": self.take_percent,
+                        "from_item_detail_text": two_from_item_detail_text,
+                        # "can_take_out": 'can_take_out'
+                    })
+                    # 发送信息提示玩家取出成功
+                    # 根据路径获取BaseUIControl实例
+                    msg2_ctrl = self.GetBaseUIControl(self.msg2).asLabel()
+                    msg2_ctrl.SetText("取出成功")
+                    # 延迟三秒清空该提示信息
+                    add_timer(3.0, msg2_ctrl.SetText, '')
+                    return
 
     def close(self, args):
         if args['TouchEvent'] == TouchEvent.TouchUp:
@@ -245,7 +303,7 @@ class NewBaseCustomContainerUIScreen(BaseUI):
                 get_ui_manager().pop_ui()
                 return
             # 处理解压缩台关闭时放入框还有物品问题
-            for i in xrange(1, 36):
+            for i in xrange(1, 37):
                 path = '/main_panel/inv_grid/item_btn' + str(i)
                 m_item = self.get_item_by_path(path)
                 if m_item:

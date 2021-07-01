@@ -117,7 +117,7 @@ class BaseCustomContainerUIScreen(BaseUI):
             item = self.get_item_by_path(self.from_item_button_path)
 
             if item:
-                for i in xrange(1, 36):
+                for i in xrange(1, 37):
                     path = '/main_panel/inv_grid/item_btn' + str(i)
                     m_item = self.get_item_by_path(path)
                     if m_item:
@@ -304,9 +304,6 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.container_state_machine.reset_to_default()
 
     def handle_coalesce(self, button_path):
-        print '----------------------> button_path =', button_path
-        print '----------------------> self.last_selected_path =', self.last_selected_path
-        print '-----------------------> self.last_touch_button =', self.last_touch_button
         if isinstance(self.get_slot_by_path(button_path), str):
             # 非背包栏位禁止合堆
             self.container_state_machine.reset_to_default()
