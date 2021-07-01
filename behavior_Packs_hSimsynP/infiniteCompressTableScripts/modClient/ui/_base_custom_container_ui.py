@@ -304,24 +304,29 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.container_state_machine.reset_to_default()
 
     def handle_coalesce(self, button_path):
+        print '----------------------> button_path =', button_path
+        print '----------------------> self.last_selected_path =', self.last_selected_path
+        print '-----------------------> self.last_touch_button =', self.last_touch_button
         if isinstance(self.get_slot_by_path(button_path), str):
             # 非背包栏位禁止合堆
             self.container_state_machine.reset_to_default()
-        item_dict = self.get_item_by_path(button_path)
-        basic_info = get_item_basic_info(item_dict.get("itemName", ""), item_dict.get("auxValue", 0))
+        else:
+            # 背包栏位处理合堆
+            item_dict = self.get_item_by_path(button_path)
+            basic_info = get_item_basic_info(item_dict.get("itemName", ""), item_dict.get("auxValue", 0))
 
-        if basic_info:
-            max_size = basic_info.get("maxStackSize")
-            if 1 < max_size != item_dict.get("count"):
-                for path, bagInfo in self.bag_info.items():
-                    if button_path == path or isinstance(self.get_slot_by_path(path), str):
-                        continue
-                    item = self.get_item_by_path(path)
-                    if is_same_item(item, item_dict) and item.get("count") != max_size:
-                        self.last_selected_path = path
-                        self.handle_swap(button_path)
-        self.GetBaseUIControl(button_path + "/img_selected").SetVisible(False)
-        self.container_state_machine.reset_to_default()
+            if basic_info:
+                max_size = basic_info.get("maxStackSize")
+                if 1 < max_size != item_dict.get("count"):
+                    for path, bagInfo in self.bag_info.items():
+                        if button_path == path or isinstance(self.get_slot_by_path(path), str):
+                            continue
+                        item = self.get_item_by_path(path)
+                        if is_same_item(item, item_dict) and item.get("count") != max_size:
+                            self.last_selected_path = path
+                            self.handle_swap(button_path)
+            self.GetBaseUIControl(button_path + "/img_selected").SetVisible(False)
+            self.container_state_machine.reset_to_default()
 
     def get_bag_item_position(self, item_path):
         """计算背包控件相对于main_panel的位置，用于飞行动画"""
