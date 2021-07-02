@@ -70,10 +70,7 @@ class NewBaseCustomContainerUIScreen(BaseUI):
         self.msg2 = '/pe_kuang_image/msg2'  # 取出操作提示信息
 
         self.btn_exit = '/bg_panel/bg/btn_exit'  # 退出按钮
-
         # endregion
-        # 测试用
-        self.test = 0
 
         # region 管理背包数据及各个槽位对应的路径
         self.bag_info = {}
@@ -156,8 +153,8 @@ class NewBaseCustomContainerUIScreen(BaseUI):
 
                 # region 检测背包剩余空间
                 remain_slot__count = 0
-                for x in xrange(1, 37):
-                    temp_path = '/main_panel/inv_grid/item_btn' + str(x)
+                for x in xrange(36):
+                    temp_path = '/main_panel/inv_grid/item_btn' + str(x + 1)
                     temp_item = self.get_item_by_path(temp_path)
                     if temp_item:
                         continue
@@ -175,8 +172,8 @@ class NewBaseCustomContainerUIScreen(BaseUI):
                     return
                 else:
                     # 背包剩余空间充足，可进行解压缩操作
-                    for i in xrange(1, 37):
-                        path = '/main_panel/inv_grid/item_btn' + str(i)
+                    for i in xrange(36):
+                        path = '/main_panel/inv_grid/item_btn' + str(i + 1)
                         m_item = self.get_item_by_path(path)
                         if m_item:
                             continue
@@ -210,8 +207,8 @@ class NewBaseCustomContainerUIScreen(BaseUI):
 
                 # region 检测背包剩余空间
                 remain_slot_count = 0
-                for x in xrange(1, 37):
-                    temp_path = '/main_panel/inv_grid/item_btn' + str(x)
+                for x in xrange(36):
+                    temp_path = '/main_panel/inv_grid/item_btn' + str(x + 1)
                     temp_item = self.get_item_by_path(temp_path)
                     if temp_item:
                         continue
@@ -228,64 +225,37 @@ class NewBaseCustomContainerUIScreen(BaseUI):
                     add_timer(3.0, msg2_ctrl.SetText, '')
                     return
                 else:
-                    # 背包剩余空间充足，可进行解压缩操作
-                    extra_id['compress_count'] = input_count
-                    new_extra_id = json.dumps(extra_id)
-                    item['extraId'] = new_extra_id
-
-                    for i in xrange(1, 37):
-                        path = '/main_panel/inv_grid/item_btn' + str(i)
+                    # try：当输入的解压数量小于已压缩数量，而且符合解压缩条件时，尝试处理解压缩逻辑
+                    # 获取一个空余槽位
+                    for i in xrange(36):
+                        path = '/main_panel/inv_grid/item_btn' + str(i + 1)
                         m_item = self.get_item_by_path(path)
                         if m_item:
                             continue
-                        to_slot = i
+                        first_empty_slot = i
                         break
-                    from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
-                                                                          True,
-                                                                          item.get("userData"))
-                    notify_to_server('OnItemSwapClientEvent', {
-                        "block_name": self.block_name,
-                        "from_slot": 'input_slot',
-                        "to_slot": to_slot,
-                        "player_id": local_player,
+                    # 将获取到的所有空槽位存储到list中
+                    empty_slot_list = []
+                    for n in xrange(36):
+                        path = '/main_panel/inv_grid/item_btn' + str(n + 1)
+                        m_item = self.get_item_by_path(path)
+                        if m_item:
+                            continue
+                        empty_slot_list.append(n)
+                    # 将数组元素反转，方便后续pop和取值，因为是需要从数组最后开始取
+                    empty_slot_list.reverse()
+                    notify_to_server("OnItemTakeOutClientEvent", {
+                        # 参数待补充
                         "from_item": item,
+                        "from_slot": 'input_slot',
+                        "take_out_num": input_count,
                         "to_item": None,
-                        "block_pos": self.block_pos,
-                        "dimension": self.dimension,
-                        "take_percent": self.take_percent,
-                        "from_item_detail_text": from_item_detail_text,
-                        "can_take_out": 'can_take_out'
-                    })
-
-                    # 再次发送事件
-                    new_count = all_count - two_extra_id['compress_count']
-                    two_extra_id['compress_count'] = new_count
-                    new_two_extra_id = json.dumps(two_extra_id)
-                    two_item['extraId'] = new_two_extra_id
-
-                    for i in xrange(1, 37):
-                        path = '/main_panel/inv_grid/item_btn' + str(i)
-                        m_item = self.get_item_by_path(path)
-                        if m_item:
-                            continue
-                        new_slot = i
-                        break
-                    two_from_item_detail_text = get_item_formatted_hover_text(two_item["itemName"],
-                                                                              two_item["auxValue"],
-                                                                              True,
-                                                                              two_item.get("userData"))
-                    notify_to_server('OnItemSwapClientEvent', {
-                        "block_name": self.block_name,
-                        "from_slot": new_slot,
-                        "to_slot": 'input_slot',
+                        "to_slot": first_empty_slot,
                         "player_id": local_player,
-                        "from_item": two_item,
-                        "to_item": None,
+                        "block_name": self.block_name,
                         "block_pos": self.block_pos,
                         "dimension": self.dimension,
-                        "take_percent": self.take_percent,
-                        "from_item_detail_text": two_from_item_detail_text,
-                        # "can_take_out": 'can_take_out'
+                        "empty_slot_list": empty_slot_list
                     })
                     # 发送信息提示玩家取出成功
                     # 根据路径获取BaseUIControl实例
@@ -293,7 +263,6 @@ class NewBaseCustomContainerUIScreen(BaseUI):
                     msg2_ctrl.SetText("取出成功")
                     # 延迟三秒清空该提示信息
                     add_timer(3.0, msg2_ctrl.SetText, '')
-                    return
 
     def close(self, args):
         if args['TouchEvent'] == TouchEvent.TouchUp:
@@ -303,13 +272,22 @@ class NewBaseCustomContainerUIScreen(BaseUI):
                 get_ui_manager().pop_ui()
                 return
             # 处理解压缩台关闭时放入框还有物品问题
-            for i in xrange(1, 37):
-                path = '/main_panel/inv_grid/item_btn' + str(i)
+            to_slot = -1
+            for i in xrange(36):
+                path = '/main_panel/inv_grid/item_btn' + str(i + 1)
                 m_item = self.get_item_by_path(path)
                 if m_item:
                     continue
                 to_slot = i
                 break
+            # 背包没有空余槽位，发送信息提示
+            if to_slot == -1:
+                # 根据路径获取BaseUIControl实例
+                msg1_ctrl = self.GetBaseUIControl(self.msg1).asLabel()
+                msg1_ctrl.SetText("背包无空槽位，待解压缩物品无法放入背包")
+                # 延迟三秒清空该提示信息
+                add_timer(3.0, msg1_ctrl.SetText, '')
+                return
             two_from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
                                                                       True,
                                                                       item.get("userData"))
@@ -608,23 +586,6 @@ class NewBaseCustomContainerUIScreen(BaseUI):
             item_name_ctrl.SetText('')
             compress_count_ctrl.SetText('')
 
-        # TODO 清空物品名和已压缩数量显示时机：放入框没有物品时
-        # if from_path == '/input_btn':
-        #     from_path = '/output_btn'
-        #     self.swap_item_ui(from_path, to_path, from_item, to_item)
-        #     self.set_item_at_path(from_path, to_item)
-        #     self.set_item_at_path(to_path, from_item)
-        # # 恢复默认文本显示
-        # # set_label_default()
-        #
-        # if from_path == '/output_btn':
-        #     from_path = '/input_btn'
-        #     self.swap_item_ui(from_path, to_path, from_item, to_item)
-        #     self.set_item_at_path(from_path, to_item)
-        #     self.set_item_at_path(to_path, from_item)
-        # # 恢复默认文本显示
-        # # set_label_default()
-
     def _update_fly_image(self, from_item, from_pos, to_pos):
         if not from_item:
             return
@@ -865,3 +826,26 @@ class NewBaseCustomContainerUIScreen(BaseUI):
         msg1_ctrl.SetText("该物品未压缩")
         # 延迟三秒清空该提示信息
         add_timer(3.0, msg1_ctrl.SetText, '')
+
+    def processed_item(self, args):
+        """
+        处理物品数据
+        """
+        item = args['item']
+        slot = args['slot']
+        path = self.slot_to_path[slot]
+
+        # 设置目标槽位item渲染
+        self.set_slot_item_btn(path, item)
+
+        # 更新背包数据 bag_info
+        self.set_item_at_path(path, item)
+
+        # 刷新显示已压缩数量
+        if slot == 'input_slot':
+            # 根据路径获取BaseUIControl实例
+            compress_count_ctrl = self.GetBaseUIControl(self.compress_count).asLabel()
+            # 设置已压缩数量，刷新显示
+            extra_id_dict = json.loads(item['extraId'])
+            compress_count_text = extra_id_dict['compress_count']
+            compress_count_ctrl.SetText(str(compress_count_text))

@@ -30,6 +30,7 @@ class InfiniteCompressTableClientSystem(ClientSystem):
             ['OpenBlockUI', ui_client, ui_client.open_block_ui],
             ['UpdateBlockUI', ui_client, ui_client.update_block_ui],
             ['OnItemSwapServerEvent', ui_client, ui_client.on_item_swap],
+            ['OnItemProcessedServerEvent', ui_client, ui_client.on_item_processed],  # processed 处理
             ['ShowShortTimeMsg1Event', ui_client, ui_client.on_short_time_msg1_show],
         ]:
             self.ListenForEvent(ModName, ModServerSystemName, event_name, instance, function)

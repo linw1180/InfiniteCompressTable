@@ -12,6 +12,82 @@ from infiniteCompressTableScripts.modServer.server_block._block import Block
 class LimitedCompressTable(Block):
 
     @classmethod
+    def take_out_item(cls, args):
+        from_item = args['from_item']
+        from_slot = args['from_slot']
+        to_slot = args['to_slot']
+        take_out_num = args['take_out_num']
+        player_id = args['player_id']
+        block_name = args['block_name']
+        empty_slot_list = args['empty_slot_list']
+
+        # try：尝试处理取出逻辑
+
+        # 根据取出数，将物品生成到背包空的槽位中
+        extra_id_dict = json.loads(from_item['extraId'])
+        # 原始item物品数据
+        bag_item = extra_id_dict['item_dict']
+        # 自定义容器中item物品数据
+        container_item = copy.deepcopy(from_item)
+
+        # 自定义槽位中剩余未解压缩数量
+        remain_count = extra_id_dict['compress_count'] - take_out_num
+        new_extra_id = extra_id_dict
+        new_extra_id['compress_count'] = remain_count
+        str_extra_id = json.dumps(new_extra_id)
+        container_item['extraId'] = str_extra_id
+        container_slot = from_slot
+        notify_to_client(player_id, "OnItemProcessedServerEvent", {
+            'item': container_item,
+            'slot': container_slot,
+            'block_name': block_name
+        })
+
+        if take_out_num <= 64:
+            # 解压缩数量 <= 64，直接生成到该指定的空槽位
+            bag_item['count'] = take_out_num
+            spawn_item_to_player_inv(bag_item, player_id)
+            bag_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
+            bag_slot = to_slot
+            notify_to_client(player_id, "OnItemProcessedServerEvent", {
+                'item': bag_item,
+                'slot': bag_slot,
+                'block_name': block_name
+            })
+        else:
+            # 解压缩数量 > 64，此时需要将物品分批生成到空余槽位
+            # 需要生成的次数
+            spawn_times = take_out_num / 64
+            # 按照槽位生成后不足64的数量
+            extra_count = take_out_num % 64
+            for i in xrange(spawn_times):
+                bag_item['count'] = 64
+                spawn_slot = empty_slot_list[-1]
+                spawn_item_to_player_inv(bag_item, player_id, spawn_slot)
+                bag_item = get_player_item(player_id, ItemPosType.INVENTORY, spawn_slot, True)
+                bag_slot = spawn_slot
+                empty_slot_list.pop()
+                notify_to_client(player_id, "OnItemProcessedServerEvent", {
+                    'item': bag_item,
+                    'slot': bag_slot,
+                    'block_name': block_name
+                })
+            if extra_count != 0:
+                bag_item['count'] = extra_count
+                spawn_slot = empty_slot_list[-1]
+                spawn_item_to_player_inv(bag_item, player_id)
+                bag_item = get_player_item(player_id, ItemPosType.INVENTORY, spawn_slot, True)
+                bag_slot = spawn_slot
+                empty_slot_list.pop()
+                notify_to_client(player_id, "OnItemProcessedServerEvent", {
+                    'item': bag_item,
+                    'slot': bag_slot,
+                    'block_name': block_name
+                })
+        # 统一更新背包UI
+        cls.update_inventory_ui(player_id, block_name)
+
+    @classmethod
     def player_use_block(cls, args):
         player_id = args['playerId']
         block_name = args['blockName']
@@ -26,8 +102,6 @@ class LimitedCompressTable(Block):
             "block_name": block_name,
             "pos": pos,
             "dimension": dimension,
-            # "equipped_items": player.equipped_items.items,
-            # "eu": block_entity_data['eu'],
         })
         add_timer(0.1, cls.update_inventory_ui, player_id, block_name)
 
@@ -82,22 +156,6 @@ class LimitedCompressTable(Block):
         if from_slot == 'input_slot' and to_item:
             return False
         # endregion
-
-        # 压缩台暂时不支持分堆操作
-        # if take_percent < 1 and not to_item:
-        #     # 简单处理分堆
-        #     to_num = int(from_item.get("count") * take_percent)
-        #     from_num = int(from_item.get("count")) - to_num
-        #     from_item["count"] = to_num
-        #     import copy
-        #     to_item = copy.deepcopy(from_item)
-        #     to_item["count"] = from_num
-        #     if isinstance(to_slot, int):
-        #         spawn_item_to_player_inv(to_item, player_id, to_slot)
-        #     if isinstance(from_slot, int):
-        #         spawn_item_to_player_inv(from_item, player_id, from_slot)
-
-        # ------------------------ 下面必须实时处理背包内的数据（增加，减少，归零等...） --------------------------
 
         # 背包中已压缩物品 ===》空的放入框
         if isinstance(from_slot, int) and to_slot == 'input_slot':

@@ -26,8 +26,6 @@ class CompressTable(Block):
             "block_name": block_name,
             "pos": pos,
             "dimension": dimension,
-            # "equipped_items": player.equipped_items.items,
-            # "eu": block_entity_data['eu'],
         })
         add_timer(0.1, cls.update_inventory_ui, player_id, block_name)
 
@@ -90,22 +88,6 @@ class CompressTable(Block):
                 n_to_item_dict = json.loads(to_item['extraId'])
                 if n_temp_item != n_to_item_dict['item_dict']:
                     return False
-
-        # 压缩台暂时不支持分堆操作
-        # if take_percent < 1 and not to_item:
-        #     # 简单处理分堆
-        #     to_num = int(from_item.get("count") * take_percent)
-        #     from_num = int(from_item.get("count")) - to_num
-        #     from_item["count"] = to_num
-        #     import copy
-        #     to_item = copy.deepcopy(from_item)
-        #     to_item["count"] = from_num
-        #     if isinstance(to_slot, int):
-        #         spawn_item_to_player_inv(to_item, player_id, to_slot)
-        #     if isinstance(from_slot, int):
-        #         spawn_item_to_player_inv(from_item, player_id, from_slot)
-
-        # ------------------------ 下面必须实时处理背包内的数据（增加，减少，归零等...） --------------------------
 
         # 背包 ==》放入框
         if isinstance(from_slot, int) and to_slot == 'input_slot':
@@ -223,7 +205,6 @@ class CompressTable(Block):
             # 设置物品自定义tips和标识符
             # 只有在存在空余槽位时才被允许放入背包
             if take_percent == 1 and not to_item:
-                # spawn_item_to_player_inv(from_item, player_id, to_slot)
 
                 from_item_dict = json.loads(from_item['extraId'])
                 no_compress_count = from_item_dict['count_data']['no_compress_count']
@@ -281,17 +262,10 @@ class CompressTable(Block):
                         # 更新背包UI
                         cls.update_inventory_ui(player_id, block_name)
 
-                # temp_item = get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True)
-                # args["from_item"] = temp_item
-                # args["to_item"] = to_item
-                # notify_to_client(player_id, 'OnItemSwapServerEvent', args)
-
                 # 已压缩物品生成到背包
                 if have_compress_count:
 
                     # 如果背包槽位无物品，而且之前压缩的物品只有一个，则将此物品生成到该指定槽位
-                    # if not get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True) and len(
-                    #         have_compress_count) == 1:
                     if temp_no_compress_count == 0 and len(have_compress_count) == 1:
                         temp_item = copy.deepcopy(from_item)
                         # json字符串 ==》python对象
@@ -314,8 +288,6 @@ class CompressTable(Block):
                         notify_to_client(player_id, 'OnItemSwapServerEvent', args)
 
                     # 如果背包槽位无物品，但之前压缩的物品多于一个，则优先在指定槽位上生成一个，再生成到其他空余槽位
-                    # elif not get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True) and len(
-                    #         have_compress_count) > 1:
                     elif temp_no_compress_count == 0 and len(have_compress_count) > 1:
                         temp_item = copy.deepcopy(from_item)
                         # json字符串 ==》python对象
@@ -386,8 +358,6 @@ class CompressTable(Block):
                             notify_to_client(player_id, 'OnItemSwapServerEvent', args)
 
                     # 如果背包槽位有物品，直接将之前压缩的物品生成到其他空余槽位
-                    # elif get_player_item(player_id, ItemPosType.INVENTORY, to_slot, True) and len(
-                    #         have_compress_count) > 0:
                     elif temp_no_compress_count != 0 and len(have_compress_count) > 0:
                         for i in xrange(36):
                             has_item = get_player_item(player_id, ItemPosType.INVENTORY, i, True)

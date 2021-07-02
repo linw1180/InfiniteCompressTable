@@ -7,19 +7,11 @@ class InfiniteCompressTableUIScreen(BaseCustomContainerUIScreen):
 
     def __init__(self, namespace, name, param):
         super(InfiniteCompressTableUIScreen, self).__init__(namespace, name, param)
-        # self.img_eu_anim = '/main_panel/bottom_panel/eu_panel/eu_anim'
-        # self.eu_nums_path = '/main_panel/bottom_panel/eu_panel/eu_nums/'
-        # self.img_msg = '/main_panel/bottom_panel/img_msg'
-        # self.paper_doll = '/main_panel/paper_doll'
-        # self.btn_exit = '/bg_panel/bg/btn_exit'  # 套用
-        # self.hide_tips_path = '/bg_panel/hide_tips_message'
         self.inv_grid_path = '/main_panel/inv_grid'  # 套用
         self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
 
     def on_ui_create(self):
         super(InfiniteCompressTableUIScreen, self).on_ui_create()
-
-    # self.AddTouchEventHandler(self.btn_exit, self.close, {"isSwallow": True})
 
     def show_ui(self, **kwargs):
         super(InfiniteCompressTableUIScreen, self).show_ui(**kwargs)

@@ -6,17 +6,14 @@ class LimitedCompressTableUIScreen(NewBaseCustomContainerUIScreen):
 
     def __init__(self, namespace, name, param):
         super(LimitedCompressTableUIScreen, self).__init__(namespace, name, param)
-        # self.img_eu_anim = '/main_panel/bottom_panel/eu_panel/eu_anim'
-        # self.eu_nums_path = '/main_panel/bottom_panel/eu_panel/eu_nums/'
-        # self.img_msg = '/main_panel/bottom_panel/img_msg'
-        # self.paper_doll = '/main_panel/paper_doll'
-        # self.btn_exit = '/bg_panel/bg/btn_exit'  # 套用
-        # self.hide_tips_path = '/bg_panel/hide_tips_message'
         self.inv_grid_path = '/main_panel/inv_grid'  # 套用
         self.item_btn_path_prefix = self.inv_grid_path + "/item_btn"
 
     def on_ui_create(self):
         super(LimitedCompressTableUIScreen, self).on_ui_create()
+
+        # 初始化自定义按钮数据
+        self.update_custom_container_ui()
 
     def show_ui(self, **kwargs):
         super(LimitedCompressTableUIScreen, self).show_ui(**kwargs)
@@ -38,9 +35,6 @@ class LimitedCompressTableUIScreen(NewBaseCustomContainerUIScreen):
             self.slot_to_path[i] = item_btn_path
 
         self.refresh_bag_ui()
-
-        # 初始化自定义按钮数据
-        self.update_custom_container_ui()
 
     def update_custom_container_ui(self):
         # 初始化两个自定义按钮数据
@@ -83,3 +77,9 @@ class LimitedCompressTableUIScreen(NewBaseCustomContainerUIScreen):
         短时间显示msg1提示信息的回调函数
         """
         super(LimitedCompressTableUIScreen, self).show_short_time_msg1(args)
+
+    def processed_item(self, args):
+        """
+        处理物品数据
+        """
+        super(LimitedCompressTableUIScreen, self).processed_item(args)

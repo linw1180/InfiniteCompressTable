@@ -7,7 +7,7 @@ from mod.common.minecraftEnum import TouchEvent
 from ._base_ui import BaseUI
 from .. import get_ui_manager
 from ..api import get_item_basic_info, get_item_formatted_hover_text, notify_to_server, local_player, \
-    get_item_hover_name
+    get_item_hover_name, add_timer
 from ..utils.container_interaction_state_utils import ButtonEventType, NodeId, ContainerInteractionStateMachine
 from ..utils.fly_image_utils import FlyImage
 from ...modCommon.config.custom_container_config import DOUBLE_CLICK_INTERVAL, FLY_ANIMATION_DURATION, ITEM_DETAIL_ALPHA
@@ -65,6 +65,7 @@ class BaseCustomContainerUIScreen(BaseUI):
         self.label1_count = '/pe_kuang_image/label1_count'
         self.label2_name = '/pe_kuang_image/label2_name'
         self.label2_count = '/pe_kuang_image/label2_count'
+        self.msg = '/pe_kuang_image/msg'  # 放入框存在物品，并且背包无空槽位情况下点击关闭按钮提示信息
 
         self.btn_exit = '/bg_panel/bg/btn_exit'  # 套用
 
@@ -117,13 +118,22 @@ class BaseCustomContainerUIScreen(BaseUI):
             item = self.get_item_by_path(self.from_item_button_path)
 
             if item:
-                for i in xrange(1, 37):
-                    path = '/main_panel/inv_grid/item_btn' + str(i)
+                to_slot = -1
+                for i in xrange(36):
+                    path = '/main_panel/inv_grid/item_btn' + str(i + 1)
                     m_item = self.get_item_by_path(path)
                     if m_item:
                         continue
                     to_slot = i
                     break
+                if to_slot == -1:
+                    # 放入框存在物品，并且背包无空槽位情况下点击关闭按钮提示信息
+                    # 根据路径获取BaseUIControl实例
+                    msg_ctrl = self.GetBaseUIControl(self.msg).asLabel()
+                    msg_ctrl.SetText("背包无空槽位，放入框物品无法返还背包")
+                    # 延迟三秒清空该提示信息
+                    add_timer(3.0, msg_ctrl.SetText, '')
+                    return
                 from_item_detail_text = get_item_formatted_hover_text(item["itemName"], item["auxValue"],
                                                                       True,
                                                                       item.get("userData"))

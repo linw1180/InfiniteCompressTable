@@ -18,18 +18,9 @@ def update_block_ui(args):
     ui_node = get_ui_manager().get_ui_by_push(ui_data)
     if not ui_node:
         return
-
     # 更新背包UI
     if 'inventory' in args:
         ui_node.update_bag_ui(args['inventory'])
-
-
-# if 'inventory' in args:
-# 	ui_node.update_bag_ui(args['inventory'], args['state'])
-# if 'eu' in args:
-# 	ui_node.update_moying_bag_ui(args['eu'], args['state'])
-# if 'search_item' in args:
-# 	ui_node.update_search_bag_ui(args['search_item'], args)
 
 
 def on_item_swap(args):
@@ -48,6 +39,14 @@ def on_short_time_msg1_show(args):
         ui_node.show_short_time_msg1(args)
 
 
+def on_item_processed(args):
+    ui_key = args['block_name']
+    ui_data = UI_DEFS.get(ui_key)
+    ui_node = get_ui_manager().get_ui_by_push(ui_data)
+    if ui_node:
+        ui_node.processed_item(args)
+
+
 def update_grid(args):
     ui_data = UI_DEFS.get(BlockEnum.COMPRESS_TABLE)
     ui_node = get_ui_manager().get_ui_by_push(ui_data)
@@ -58,10 +57,3 @@ def update_grid(args):
         ui_node = get_ui_manager().get_ui_by_push(ui_data)
         if ui_node:
             ui_node.show_data()
-
-# def on_update_bag_ui(args):
-# 	ui_key = args['block_name']
-# 	ui_data = UI_DEFS.get(ui_key)
-# 	ui_node = get_ui_manager().get_ui_by_push(ui_data)
-# 	if ui_node:
-# 		ui_node.update_bag_ui(args)

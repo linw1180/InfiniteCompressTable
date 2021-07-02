@@ -31,6 +31,7 @@ class InfiniteCompressTableServerSystem(ServerSystem):
         # 注册客户端事件监听
         for event_name, instance, function in [
             ["OnItemSwapClientEvent", item_server, item_server.on_item_swap],
+            ["OnItemTakeOutClientEvent", block_server, block_server.on_item_take_out],
         ]:
             self.ListenForEvent(ModName, ModClientSystemName, event_name, instance, function)
 

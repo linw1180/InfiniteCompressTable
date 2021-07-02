@@ -4,26 +4,31 @@ from infiniteCompressTableScripts.modServer.server_block.compress_table import C
 from infiniteCompressTableScripts.modServer.server_block.limited_compress_table import LimitedCompressTable
 
 BLOCK_SERVER_MAPPING = {
-	BlockEnum.COMPRESS_TABLE: CompressTable,
-	BlockEnum.LIMITED_COMPRESS_TABLE: LimitedCompressTable
+    BlockEnum.COMPRESS_TABLE: CompressTable,
+    BlockEnum.LIMITED_COMPRESS_TABLE: LimitedCompressTable
 }
 
 
 def player_use_block(args):
-	if args['blockName'] in BLOCK_SERVER_MAPPING:
-		BLOCK_SERVER_MAPPING[args['blockName']].player_use_block(args)
+    if args['blockName'] in BLOCK_SERVER_MAPPING:
+        BLOCK_SERVER_MAPPING[args['blockName']].player_use_block(args)
 
 
 def use_item_on_block(args):
-	"""
-	如果对自定义方块使用物品时拦截物品使用，防止操作时误操作放置物品
+    """
+    如果对自定义方块使用物品时拦截物品使用，防止操作时误操作放置物品
 
-	:param args:
-	:return:
-	"""
-	block_name = args["blockName"]
-	if block_name == "xl:block_compress_table":
-		args["ret"] = True
+    :param args:
+    :return:
+    """
+    block_name = args["blockName"]
+    if block_name == "xl:block_compress_table":
+        args["ret"] = True
 
-	if block_name == "xl:block_limited_compress_table":
-		args["ret"] = True
+    if block_name == "xl:block_limited_compress_table":
+        args["ret"] = True
+
+
+def on_item_take_out(args):
+    if args['block_name'] in BLOCK_SERVER_MAPPING:
+        BLOCK_SERVER_MAPPING[args['block_name']].take_out_item(args)
